@@ -27,12 +27,9 @@ unsigned int sha_k[64] = {
 // set state to what it should be before processing the first chunk of a message
 void sha_initstate(unsigned int *state)
 {
-    int n;
-
-    for (n = 0; n < 8; n++)
+    for (int i = 0; i < 8; i++)
     {
-        *state = sha_h[n];
-        state++;
+        state[i] = sha_h[i];
     }
 }
 
@@ -109,11 +106,11 @@ int verifyhash(unsigned int *block)
     unsigned int state[8];
     unsigned int chunk[16];
     int n;
-    unsigned int *u_nonce = ((unsigned int *)block + 16 + 3);
+    unsigned int *u_nonce = &block[19];
     // unsigned int *u_timestamp = ((unsigned int *)block+16+2);
 
     // Set initial state of sha256.
-    sha_initstate((unsigned int *)&state);
+    sha_initstate(state);
 
     // The block consists of 20 32bit variables, and the first 16 of these make up the first chunk.
     for (n = 0; n < 16; n++)
@@ -306,8 +303,8 @@ unsigned int input_block[20] = {
     1260281418,
     699096905,
     4294901789,
-    // 497822588}; // correct nonce
-    250508269}; // randomly picked nonce which will be overwritten
+    497822588}; // correct nonce
+    // 250508269}; // randomly picked nonce which will be overwritten
 
 /*unsigned int input_block[20] = {
  16777216,
