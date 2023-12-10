@@ -38,14 +38,14 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
 {
     unsigned int w[64], s0, s1;
     unsigned int a, b, c, d, e, f, g, h;
-    unsigned int t1, t2, maj, ch, S0, S1;
+    unsigned int temp1, temp2, maj, ch, S0, S1;
     int n;
 
     // Read in chunk. When these 32bit words were read, they should have been taken as big endian.
     for (n = 0; n < 16; n++)
-        w[n] = *(chunk + n);
+        w[n] = chunk[n];
 
-    // Extend the sixteen 32-bit words into sixty-four 32-bit words:
+    // Extend the sixteen 32-bit words into sixty-four 32-bit words - MESSAHE SCHEDULE:
     for (n = 16; n < 64; n++)
     {
         s0 = (w[n - 15] >> 7 | w[n - 15] << (32 - 7)) ^ (w[n - 15] >> 18 | w[n - 15] << (32 - 18)) ^ (w[n - 15] >> 3);
@@ -63,27 +63,27 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
     g = *(state + 6);
     h = *(state + 7);
 
-    // Main loop:
+    // Main loop - COMPRESSION:
     for (n = 0; n < 64; n++)
     {
-        S0 = (a >> 2 | a << (32 - 2)) ^ (a >> 13 | a << (32 - 13)) ^ (a >> 22 | a << (32 - 22));
-        maj = (a & b) ^ (a & c) ^ (b & c);
-        t2 = S0 + maj;
         S1 = (e >> 6 | e << (32 - 6)) ^ (e >> 11 | e << (32 - 11)) ^ (e >> 25 | e << (32 - 25));
         ch = (e & f) ^ ((~e) & g);
-        t1 = h + S1 + ch + sha_k[n] + w[n];
-
+        temp1 = h + S1 + ch + sha_k[n] + w[n];
+        S0 = (a >> 2 | a << (32 - 2)) ^ (a >> 13 | a << (32 - 13)) ^ (a >> 22 | a << (32 - 22));
+        maj = (a & b) ^ (a & c) ^ (b & c);
+        temp2 = S0 + maj;
+        
         h = g;
         g = f;
         f = e;
-        e = d + t1;
+        e = d + temp1;
         d = c;
         c = b;
         b = a;
-        a = t1 + t2;
+        a = temp1 + temp2;
     }
 
-    // Add this chunk's hash to result so far:
+    // Add this chunk's hash to result so far - MODIFY FINAL VALUES
     *(state + 0) += a;
     *(state + 1) += b;
     *(state + 2) += c;
@@ -115,12 +115,29 @@ int verifyhash(unsigned int *block)
     // The block consists of 20 32bit variables, and the first 16 of these make up the first chunk.
     for (n = 0; n < 16; n++)
     {
-        chunk[n] = *(block + n);
+        chunk[n] = block[n];
     }
 
     // Process it.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
+    // print hash.
+    printf("REVERSE HASH: \n");
+    for (int n = 7; n >= 0; n--)
+    {
+        printf("%x", state[n]);
+        // printf("%02x", (state[n] >> 8) & 0xff);
+        // printf("%02x", (state[n] >> 16) & 0xff);
+        // printf("%02x", (state[n] >> 24) & 0xff);
+    }
+    printf("\n");
+
+    printf("NORMAL WAY HASH: \n");
+    for (int n = 0; n < 8; n++)
+    {
+        printf("%x", state[n]);
+    }
+    printf("\n");
 #ifdef CBMC
     // set the nonce to a non-deterministic value
     *u_nonce = nondet_uint();
@@ -240,10 +257,10 @@ int verifyhash(unsigned int *block)
     // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
     for (n = 7; n >= 0; n--)
     {
-        printf("%02x-", state[n] & 0xff);
-        printf("%02x-", (state[n] >> 8) & 0xff);
-        printf("%02x-", (state[n] >> 16) & 0xff);
-        printf("%02x-", (state[n] >> 24) & 0xff);
+        printf("%02x", state[n] & 0xff);
+        printf("%02x", (state[n] >> 8) & 0xff);
+        printf("%02x", (state[n] >> 16) & 0xff);
+        printf("%02x", (state[n] >> 24) & 0xff);
     }
     printf("\n");
 #endif
@@ -284,6 +301,28 @@ void processblocks(char *filename)
 }
 
 unsigned int input_block[20] = {
+    0b01101000011001010110110001101100,
+    0b01101111001000000111011101101111,
+    0b01110010011011000110010010000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000001011000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000001011000};
+
+unsigned int input_block2[20] = {
     16777216,
     0,
     0,
@@ -293,18 +332,18 @@ unsigned int input_block[20] = {
     0,
     0,
     0,
-    1000599037,
-    2054886066,
-    2059873342,
-    1735823201,
-    2143820739,
-    2290766130,
-    983546026,
-    1260281418,
-    699096905,
-    4294901789,
-    497822588}; // correct nonce
-    // 250508269}; // randomly picked nonce which will be overwritten
+    0,  // 1000599037,
+    0,  // 2054886066,
+    0,  // 2059873342,
+    0,  // 1735823201,
+    0,  // 2143820739,
+    0,  // 2290766130,
+    0,  // 983546026,
+    0,  // 1260281418,
+    0,  // 699096905,
+    0,  // 4294901789,
+    0}; // 497822588}; // correct nonce
+// 250508269}; // randomly picked nonce which will be overwritten
 
 /*unsigned int input_block[20] = {
  16777216,
