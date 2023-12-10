@@ -4,3 +4,11 @@ int main() {
 
     return 0;
 }
+
+void printArray(unsigned int *array)
+{
+    for (int i = 0; i < 20; ++i)
+    {
+        printf("%u\n", array[i]);
+    }
+}

@@ -8,9 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int bc = 0;
-unsigned int prevtarget = 0;
-
 // SHA STUFF START -----------------------------------------------------------------
 unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
 
@@ -95,6 +92,26 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
 }
 // SHA STUFF END -------------------------------------------------------------------
 
+void printHashReverse(unsigned int *state)
+{
+    printf("REVERSE HASH: \n");
+    for (int n = 7; n >= 0; n--)
+    {
+        printf("%x", state[n]);
+    }
+    printf("\n");
+}
+
+void printHashNormalWay(unsigned int *state)
+{
+    printf("NORMAL WAY HASH: \n");
+    for (int n = 0; n < 8; n++)
+    {
+        printf("%x", state[n]);
+    }
+    printf("\n");
+}
+
 unsigned int pad0[12] = {
     0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000280};
@@ -122,22 +139,7 @@ int verifyhash(unsigned int *block)
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
     // print hash.
-    printf("REVERSE HASH: \n");
-    for (int n = 7; n >= 0; n--)
-    {
-        printf("%x", state[n]);
-        // printf("%02x", (state[n] >> 8) & 0xff);
-        // printf("%02x", (state[n] >> 16) & 0xff);
-        // printf("%02x", (state[n] >> 24) & 0xff);
-    }
-    printf("\n");
-
-    printf("NORMAL WAY HASH: \n");
-    for (int n = 0; n < 8; n++)
-    {
-        printf("%x", state[n]);
-    }
-    printf("\n");
+    printHashNormalWay(state);
 #ifdef CBMC
     // set the nonce to a non-deterministic value
     *u_nonce = nondet_uint();
@@ -252,52 +254,7 @@ int verifyhash(unsigned int *block)
     assert(flag == 1);*/
     /* =============================== BLOCK X      ============================================== */
 #endif
-
-#ifndef CBMC
-    // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
-    for (n = 7; n >= 0; n--)
-    {
-        printf("%02x", state[n] & 0xff);
-        printf("%02x", (state[n] >> 8) & 0xff);
-        printf("%02x", (state[n] >> 16) & 0xff);
-        printf("%02x", (state[n] >> 24) & 0xff);
-    }
-    printf("\n");
-#endif
-
     return (0);
-}
-
-void processblocks(char *filename)
-{
-    FILE *f;
-    char buf[256];
-    unsigned int *bp, *bsize, *block;
-    unsigned int n, t;
-
-    bp = (unsigned int *)&buf;
-    bsize = bp + 1;
-    block = bp + 2;
-
-    f = fopen(filename, "rb");
-
-    while (fread(buf, 1, 88, f) == 88)
-    {
-        // Swap endianess.. I think this is already done in the RPC getwork(), but that must be triple checked.
-        for (n = 0; n < 20; n++)
-        {
-            t = *(block + n);
-            t = (t >> 24) | (t << 24) | ((t & 0x00ff0000) >> 8) | ((t & 0x0000ff00) << 8);
-            *(block + n) = t;
-        }
-
-        verifyhash(block);
-
-        bc++;
-        fseek(f, *bsize - 80, SEEK_CUR);
-    }
-
-    fclose(f);
 }
 
 unsigned int input_block[20] = {
@@ -321,65 +278,6 @@ unsigned int input_block[20] = {
     0b00000000000000000000000000000000,
     0b00000000000000000000000000000000,
     0b00000000000000000000000001011000};
-
-unsigned int input_block2[20] = {
-    16777216,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,  // 1000599037,
-    0,  // 2054886066,
-    0,  // 2059873342,
-    0,  // 1735823201,
-    0,  // 2143820739,
-    0,  // 2290766130,
-    0,  // 983546026,
-    0,  // 1260281418,
-    0,  // 699096905,
-    0,  // 4294901789,
-    0}; // 497822588}; // correct nonce
-// 250508269}; // randomly picked nonce which will be overwritten
-
-/*unsigned int input_block[20] = {
- 16777216,
-
- // prev block
- 1711699388,
- 2939744218,
- 3252212977,
- 2893103710,
- 2128873143,
- 1431457499,
- 3808690176,
- 0,
-
- // merkle
- 1803429671,
- 533048842,
- 3073754577,
- 1455291121,
- 3996402020,
- 4104720509,
- 1827684636,
- 4251965418,
-
- // time, bits, nonce
- 2004092497, 2980447514,// 1
- 4043570730
-}; */
-
-void printArray(unsigned int *array)
-{
-    for (int i = 0; i < 20; ++i)
-    {
-        printf("%u\n", array[i]);
-    }
-}
 
 int main(int argc, void *argv[])
 {
