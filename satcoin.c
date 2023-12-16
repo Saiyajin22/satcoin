@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// SHA STUFF START -----------------------------------------------------------------
+// SHA 256 IMPLEMENTATION START -----------------------------------------------------------------
 unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
 
 unsigned int sha_k[64] = {
@@ -21,8 +21,8 @@ unsigned int sha_k[64] = {
     0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A, 0x5B9CCA4F, 0x682E6FF3,
     0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208, 0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2};
 
-// set state to what it should be before processing the first chunk of a message
-void sha_initstate(unsigned int *state)
+// Inits SHA256 State
+void sha256InitState(unsigned int *state)
 {
     for (int i = 0; i < 8; i++)
     {
@@ -30,8 +30,8 @@ void sha_initstate(unsigned int *state)
     }
 }
 
-// process one chunk of a message, updating state (which after the last chunk is the hash)
-void sha_processchunk(unsigned int *state, unsigned int *chunk)
+// Process one chunk of a message, updating state (which after the last chunk is the hash)
+void sha256ProcessChunk(unsigned int *state, unsigned int *chunk)
 {
     unsigned int w[64], s0, s1;
     unsigned int a, b, c, d, e, f, g, h;
@@ -42,7 +42,7 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
     for (n = 0; n < 16; n++)
         w[n] = chunk[n];
 
-    // Extend the sixteen 32-bit words into sixty-four 32-bit words - MESSAHE SCHEDULE:
+    // Extend the sixteen 32-bit words into sixty-four 32-bit words - MESSAGE SCHEDULE:
     for (n = 16; n < 64; n++)
     {
         s0 = (w[n - 15] >> 7 | w[n - 15] << (32 - 7)) ^ (w[n - 15] >> 18 | w[n - 15] << (32 - 18)) ^ (w[n - 15] >> 3);
@@ -80,7 +80,7 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
         a = temp1 + temp2;
     }
 
-    // Add this chunk's hash to result so far - MODIFY FINAL VALUES
+    // Add this chunk's hash to the result so far - MODIFY FINAL VALUES
     *(state + 0) += a;
     *(state + 1) += b;
     *(state + 2) += c;
@@ -124,10 +124,9 @@ int verifyhash(unsigned int *block)
     unsigned int chunk[16];
     int n;
     unsigned int *u_nonce = &block[19];
-    // unsigned int *u_timestamp = ((unsigned int *)block+16+2);
 
     // Set initial state of sha256.
-    sha_initstate(state);
+    sha256InitState(state);
 
     // The block consists of 20 32bit variables, and the first 16 of these make up the first chunk.
     for (n = 0; n < 16; n++)
@@ -136,7 +135,7 @@ int verifyhash(unsigned int *block)
     }
 
     // Process it.
-    sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
+    sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
 
     // print hash.
     printHashNormalWay(state);
@@ -172,6 +171,7 @@ int verifyhash(unsigned int *block)
 #endif // else SATCNF
 #endif
 
+    // HERE HE HASHED THE LAST 4 ELEMENTS OF HIS ORIGINAL UNSIGNED INT [20] ARRAY
     // The last 4 int's go together with some padding to make the second and final chunk.
     for (n = 0; n < 4; n++)
     {
@@ -181,8 +181,9 @@ int verifyhash(unsigned int *block)
         chunk[n] = pad0[n - 4];
 
     // And is processed, giving the hash.
-    sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
+    sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
 
+    // HERE HE HASHES THE PRODUCED HASH, BECAUSE IN BTC MINING, SHA256 IS APPLIED TWICE
     // This hash will be hashed again, so is copied into the chunk buffer, and padding is added.
     for (n = 0; n < 8; n++)
         chunk[n] = state[n];
@@ -190,10 +191,10 @@ int verifyhash(unsigned int *block)
         chunk[n] = pad1[n - 8];
 
     // State is initialized.
-    sha_initstate((unsigned int *)&state);
+    sha256InitState((unsigned int *)&state);
 
     // Chunk is processed.
-    sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
+    sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
 
 #ifdef CBMC
     /* =============================== GENESIS BLOCK ============================================= */
