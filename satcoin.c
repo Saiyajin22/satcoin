@@ -1,17 +1,81 @@
-/* SAT-based bitcoin mining proof of concept. Follow the instructions at:
-    http://jheusser.github.io/2013/12/30/satcoin-code.html
-*/
-
-// Target is actually stored in the header for each block, in the "bits" field, as a 3
-// byte value and a 1 byte shift value displacing the 3 bytes.
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+
+// GLOBAL BARIABLES, FUNCTIONS
+// const unsigned int pad0[12] = {
+//     0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+//     0x00000000, 0x00000000, 0x00000000, 0x00000280};
+
+const unsigned int pad1[8] = {0b10000000000000000000000000000000, 0b00000000000000000000000000000000, 0b00000000000000000000000000000000,
+                        0b00000000000000000000000000000000, 0b00000000000000000000000000000000, 0b00000000000000000000000000000000,
+                        0b00000000000000000000000000000000, 0b00000000000000000000000100000000};
+
+unsigned int globalState[8];
+
+#define MAX_NONCE 4294967295
+
+void printHashReverse(unsigned int *state)
+{
+    printf("REVERSE HASH: \n");
+    for (int n = 7; n >= 0; n--)
+    {
+        printf("%x", state[n]);
+    }
+    printf("\n");
+}
+
+void printHashNormalWay(unsigned int *state)
+{
+    printf("NORMAL WAY HASH: \n");
+    for (int n = 0; n < 8; n++)
+    {
+        printf("%x", state[n]);
+    }
+    printf("\n");
+}
+
+int count_bits(int value)
+{
+    int count = 0;
+    value += 1;
+
+    // Count the number of bits by shifting until the value becomes zero
+    while (value)
+    {
+        count++;
+        value <<= 1;
+    }
+
+    return count;
+}
+
+void hexToBinaryAndOverwrite(unsigned int *value)
+{
+    unsigned int originalValue = *value;
+    *value = 0; // Clear the original value
+
+    for (int i = sizeof(unsigned int) * 8 - 1; i >= 0; i--)
+    {
+        *value |= ((originalValue >> i) & 1u) << (sizeof(unsigned int) * 8 - 1 - i);
+    }
+}
+
+void hexToBinary(unsigned int value, unsigned int *binaryValue)
+{
+    *binaryValue = 0; // Clear the binary value
+
+    for (int i = sizeof(unsigned int) * 8 - 1; i >= 0; i--)
+    {
+        *binaryValue |= ((value >> i) & 1u) << (sizeof(unsigned int) * 8 - 1 - i);
+    }
+}
 
 // SHA 256 IMPLEMENTATION START -----------------------------------------------------------------
-unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
+const unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
 
-unsigned int sha_k[64] = {
+const unsigned int sha_k[64] = {
     0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,
     0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3, 0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174,
     0xE49B69C1, 0xEFBE4786, 0x0FC19DC6, 0x240CA1CC, 0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA,
@@ -89,41 +153,22 @@ void sha256ProcessChunk(unsigned int *state, unsigned int *chunk)
     *(state + 5) += f;
     *(state + 6) += g;
     *(state + 7) += h;
+
+    globalState[0] = *(state + 0);
+    globalState[1] = *(state + 1);
+    globalState[2] = *(state + 2);
+    globalState[3] = *(state + 3);
+    globalState[4] = *(state + 4);
+    globalState[5] = *(state + 5);
+    globalState[6] = *(state + 6);
+    globalState[7] = *(state + 7);
 }
-// SHA STUFF END -------------------------------------------------------------------
-
-void printHashReverse(unsigned int *state)
-{
-    printf("REVERSE HASH: \n");
-    for (int n = 7; n >= 0; n--)
-    {
-        printf("%x", state[n]);
-    }
-    printf("\n");
-}
-
-void printHashNormalWay(unsigned int *state)
-{
-    printf("NORMAL WAY HASH: \n");
-    for (int n = 0; n < 8; n++)
-    {
-        printf("%x", state[n]);
-    }
-    printf("\n");
-}
-
-unsigned int pad0[12] = {
-    0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000280};
-
-unsigned int pad1[8] = {0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000100};
 
 int verifyhash(unsigned int *block)
 {
     unsigned int state[8];
     unsigned int chunk[16];
     int n;
-    unsigned int *u_nonce = &block[19];
 
     // Set initial state of sha256.
     sha256InitState(state);
@@ -170,31 +215,30 @@ int verifyhash(unsigned int *block)
 #endif // else UNSATCNF
 #endif // else SATCNF
 #endif
+    // for(int i = 0; i < 8; ++i) {
+    //     char s1[9];
+    //     itoa(state[i], s1, 16);
 
-    // HERE HE HASHED THE LAST 4 ELEMENTS OF HIS ORIGINAL UNSIGNED INT [20] ARRAY
-    // The last 4 int's go together with some padding to make the second and final chunk.
-    for (n = 0; n < 4; n++)
-    {
-        chunk[n] = *(block + 16 + n);
-    }
-    for (n = 4; n < 16; n++)
-        chunk[n] = pad0[n - 4];
+    //     for(int j = 0; j < 8; ++j) {
 
-    // And is processed, giving the hash.
-    sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
+    //     }
+    // }
 
-    // HERE HE HASHES THE PRODUCED HASH, BECAUSE IN BTC MINING, SHA256 IS APPLIED TWICE
-    // This hash will be hashed again, so is copied into the chunk buffer, and padding is added.
-    for (n = 0; n < 8; n++)
+
+    for (n = 0; n < 8; n++) {
         chunk[n] = state[n];
+    } 
     for (n = 8; n < 16; n++)
         chunk[n] = pad1[n - 8];
 
-    // State is initialized.
+    // // State is initialized.
     sha256InitState((unsigned int *)&state);
 
-    // Chunk is processed.
+    // // Chunk is processed.
     sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
+
+    // // print hash.
+    printHashNormalWay(state);
 
 #ifdef CBMC
     /* =============================== GENESIS BLOCK ============================================= */
@@ -258,7 +302,7 @@ int verifyhash(unsigned int *block)
     return (0);
 }
 
-unsigned int input_block[20] = {
+unsigned int input_block[16] = {
     0b01101000011001010110110001101100,
     0b01101111001000000111011101101111,
     0b01110010011011000110010010000000,
@@ -274,14 +318,43 @@ unsigned int input_block[20] = {
     0b00000000000000000000000000000000,
     0b00000000000000000000000000000000,
     0b00000000000000000000000000000000,
-    0b00000000000000000000000001011000,
+    88};
+
+unsigned int input_block2[16] = {
+    0b10111001010011010010011110111001, // Binary representation of: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9 + padding
+    0b10010011010011010011111000001000, // All chars should be separately encoded based on their ascii code's binary repr
+    0b10100101001011100101001011010111,
+    0b11011010011111011010101111111010,
+    0b11000100100001001110111111100011,
+    0b01111010010100111000000011101110,
+    0b10010000100010001111011110101100,
+    0b11100010111011111100110111101001,
+    0b10000000000000000000000000000000,
     0b00000000000000000000000000000000,
     0b00000000000000000000000000000000,
     0b00000000000000000000000000000000,
-    0b00000000000000000000000001011000};
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000100000000};
 
 int main(int argc, void *argv[])
 {
-    verifyhash(&input_block[0]);
+    unsigned long nonce = 0;
+    while(nonce < MAX_NONCE) {
+        // input_block[15] = nonce;
+        verifyhash(&input_block[0]);
+        char state1[9];
+        itoa(globalState[0], state1, 16);
+        if (state1[0] == '0' && state1[1] == '0')
+        {
+            assert(0);
+            break;
+        }
+        break;
+        nonce++;
+    }
+    
+    
     return 0;
 }
