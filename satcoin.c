@@ -31,7 +31,7 @@ void printHashNormalWay(unsigned int *state)
     printf("NORMAL WAY HASH: \n");
     for (int n = 0; n < 8; n++)
     {
-        printf("%x", state[n]);
+        printf("%x-", state[n]);
     }
     printf("\n");
 }
