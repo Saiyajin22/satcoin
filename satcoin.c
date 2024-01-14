@@ -9,8 +9,8 @@
 //     0x00000000, 0x00000000, 0x00000000, 0x00000280};
 
 const unsigned int pad1[8] = {0b10000000000000000000000000000000, 0b00000000000000000000000000000000, 0b00000000000000000000000000000000,
-                        0b00000000000000000000000000000000, 0b00000000000000000000000000000000, 0b00000000000000000000000000000000,
-                        0b00000000000000000000000000000000, 0b00000000000000000000000100000000};
+                              0b00000000000000000000000000000000, 0b00000000000000000000000000000000, 0b00000000000000000000000000000000,
+                              0b00000000000000000000000000000000, 0b00000000000000000000001000000000};
 
 unsigned int globalState[8];
 
@@ -133,7 +133,7 @@ void sha256ProcessChunk(unsigned int *state, unsigned int *chunk)
         S0 = (a >> 2 | a << (32 - 2)) ^ (a >> 13 | a << (32 - 13)) ^ (a >> 22 | a << (32 - 22));
         maj = (a & b) ^ (a & c) ^ (b & c);
         temp2 = S0 + maj;
-        
+
         h = g;
         g = f;
         f = e;
@@ -164,7 +164,7 @@ void sha256ProcessChunk(unsigned int *state, unsigned int *chunk)
     globalState[7] = *(state + 7);
 }
 
-int verifyhash(unsigned int *block)
+int sha256(char *data)
 {
     unsigned int state[8];
     unsigned int chunk[16];
@@ -174,9 +174,16 @@ int verifyhash(unsigned int *block)
     sha256InitState(state);
 
     // The block consists of 20 32bit variables, and the first 16 of these make up the first chunk.
+    int sum = 0;
     for (n = 0; n < 16; n++)
     {
-        chunk[n] = block[n];
+        // chunk[n] = block[n];
+        sum += data[n];
+    }
+    chunk[0] = sum;
+    chunk[1] = 1;
+    for(int i = 2; i < 16; i++) {
+        chunk[i] = 0;
     }
 
     // Process it.
@@ -184,6 +191,9 @@ int verifyhash(unsigned int *block)
 
     // print hash.
     printHashNormalWay(state);
+
+    sha256InitState(state);
+};
 #ifdef CBMC
     // set the nonce to a non-deterministic value
     *u_nonce = nondet_uint();
@@ -215,30 +225,6 @@ int verifyhash(unsigned int *block)
 #endif // else UNSATCNF
 #endif // else SATCNF
 #endif
-    // for(int i = 0; i < 8; ++i) {
-    //     char s1[9];
-    //     itoa(state[i], s1, 16);
-
-    //     for(int j = 0; j < 8; ++j) {
-
-    //     }
-    // }
-
-
-    for (n = 0; n < 8; n++) {
-        chunk[n] = state[n];
-    } 
-    for (n = 8; n < 16; n++)
-        chunk[n] = pad1[n - 8];
-
-    // // State is initialized.
-    sha256InitState((unsigned int *)&state);
-
-    // // Chunk is processed.
-    sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
-
-    // // print hash.
-    printHashNormalWay(state);
 
 #ifdef CBMC
     /* =============================== GENESIS BLOCK ============================================= */
@@ -299,8 +285,6 @@ int verifyhash(unsigned int *block)
     assert(flag == 1);*/
     /* =============================== BLOCK X      ============================================== */
 #endif
-    return (0);
-}
 
 unsigned int input_block[16] = {
     0b01101000011001010110110001101100,
@@ -318,7 +302,7 @@ unsigned int input_block[16] = {
     0b00000000000000000000000000000000,
     0b00000000000000000000000000000000,
     0b00000000000000000000000000000000,
-    88};
+    0b00000000000000000000000001011000};
 
 unsigned int input_block2[16] = {
     0b10111001010011010010011110111001, // Binary representation of: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9 + padding
@@ -338,23 +322,42 @@ unsigned int input_block2[16] = {
     0b00000000000000000000000000000000,
     0b00000000000000000000000100000000};
 
+// for (n = 0; n < 8; n++)
+// {
+//     chunk[n] = state[n];
+// }
+// for (n = 8; n < 16; n++)
+// {
+//     chunk[n] = pad1[n - 8];
+// }
+
+// // // State is initialized.
+// sha256InitState((unsigned int *)&state);
+
+// // // Chunk is processed.
+// sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
+
+// // // print hash.
+// printHashNormalWay(state);
+
 int main(int argc, void *argv[])
 {
-    unsigned long nonce = 0;
-    while(nonce < MAX_NONCE) {
-        // input_block[15] = nonce;
-        verifyhash(&input_block[0]);
-        char state1[9];
-        itoa(globalState[0], state1, 16);
-        if (state1[0] == '0' && state1[1] == '0')
-        {
-            assert(0);
-            break;
-        }
-        break;
-        nonce++;
-    }
-    
-    
+    sha256("hello world");
+    // unsigned long nonce = 0;
+    // while (nonce < MAX_NONCE)
+    // {
+    //     // input_block[15] = nonce;
+    //     sha256(&input_block[0]);
+    //     char state1[9];
+    //     itoa(globalState[0], state1, 16);
+    //     if (state1[0] == '0' && state1[1] == '0')
+    //     {
+    //         assert(0);
+    //         break;
+    //     }
+    //     break;
+    //     nonce++;
+    // }
+
     return 0;
 }
