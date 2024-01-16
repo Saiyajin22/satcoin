@@ -202,17 +202,21 @@ int sha256(char *data)
     // Set initial state of sha256.
     sha256InitState(state);
 
-    // The block consists of 20 32bit variables, and the first 16 of these make up the first chunk.
+    // This array holds one line (one element) of a chunk. It is used, to build the chunks, and to calculate the values of the chunk
+    // Example line (chunk element): 0b11001100 11001100 11001100 11001100
     char line[33];
+    // Init the array with default values, and the null terminator
     for (int i = 0; i < 32; i++)
     {
         line[i] = '0';
     }
     line[32] = '\0';
+    // Indexes, used for the calculation
     int lineIndex = 0;
     int chunkIndex = 0;
     for (int i = 0; i < dataLen; i++)
     {
+        // This holds the i element of the data array in binary form
         char bits[8];
         for (int j = 0; j < 8; j++)
         {
@@ -246,6 +250,7 @@ int sha256(char *data)
             }
         }
     }
+    // Check if there are elements remained in the line
     if (lineIndex != 0)
     {
         line[lineIndex++] = '1';
@@ -267,11 +272,14 @@ int sha256(char *data)
     }
     for (int i = chunkIndex; i < 16; i++)
     {
-        if(i == 15) {
-            chunk[i] = dataLen*8;
-        } else {
+        if (i == 15)
+        {
+            chunk[i] = dataLen * 8;
+        }
+        else
+        {
             chunk[i] = 0b00000000000000000000000000000000;
-        } 
+        }
     }
 
     // Process it.
@@ -374,6 +382,7 @@ assert(flag == 1);*/
 /* =============================== BLOCK X      ============================================== */
 #endif
 
+// 0b10000000000000000000000000000000 == 0x80000000 == 2147483648
 unsigned int input_block[16] = {
     0b01101000011001010110110001101100,
     0b01101111001000000111011101101111,
