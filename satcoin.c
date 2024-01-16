@@ -250,26 +250,24 @@ int sha256(char *data)
             }
         }
     }
-    // Check if there are elements remained in the line
-    if (lineIndex != 0)
-    {
-        line[lineIndex++] = '1';
-        for (int i = lineIndex; i < 32; i++)
-        {
-            line[lineIndex++] = '0';
-        }
-        printf("binary line: %s\n", line);
-        char *end;
-        unsigned int part;
-        part = strtoul(line, &end, 2);
-        chunk[chunkIndex++] = part;
 
-        lineIndex = 0;
-        for (int i = 0; i < 32; i++)
-        {
-            line[i] = '0';
-        }
+    line[lineIndex++] = '1';
+    for (int i = lineIndex; i < 32; i++)
+    {
+        line[lineIndex++] = '0';
     }
+    printf("binary line: %s\n", line);
+    char *end;
+    unsigned int part;
+    part = strtoul(line, &end, 2);
+    chunk[chunkIndex++] = part;
+
+    lineIndex = 0;
+    for (int i = 0; i < 32; i++)
+    {
+        line[i] = '0';
+    }
+
     for (int i = chunkIndex; i < 16; i++)
     {
         if (i == 15)
@@ -439,7 +437,7 @@ unsigned int input_block2[16] = {
 
 int main(int argc, void *argv[])
 {
-    sha256("hello world");
+    sha256("hello worldd");
     // unsigned long nonce = 0;
     // while (nonce < MAX_NONCE)
     // {
