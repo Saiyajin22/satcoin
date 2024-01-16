@@ -193,11 +193,30 @@ void sha256ProcessChunk(unsigned int *state, unsigned int *chunk)
     globalState[7] = *(state + 7);
 }
 
+int getNumberOfChunks(int dataLen) {
+    int numberOfChunks = 0;
+    if (dataLen <= 55)
+    {
+        return 1;
+    } else {
+        dataLen -= 56;
+        numberOfChunks++;
+        while(dataLen >= 0) {
+            dataLen -= 64;
+            numberOfChunks++;
+        }
+    }
+    return numberOfChunks;
+}
+
 int sha256(char *data)
 {
     unsigned int state[8];
     unsigned int chunk[16];
-    unsigned int dataLen = strlen(data);
+    int dataLen = strlen(data);
+
+    int numberOfChunks = getNumberOfChunks(dataLen);
+    printf("number of chunks: %d\n", numberOfChunks);
 
     // Set initial state of sha256.
     sha256InitState(state);
@@ -236,7 +255,7 @@ int sha256(char *data)
         }
         if (lineIndex == 32)
         {
-            printf("binary line: %s\n", line);
+            // printf("binary line: %s\n", line);
             char *end;
             unsigned int part;
             part = strtoul(line, &end, 2);
@@ -437,7 +456,7 @@ unsigned int input_block2[16] = {
 
 int main(int argc, void *argv[])
 {
-    sha256("hello worldd");
+    sha256("hello worldddddddddddddddddddddddddddddddddddddddddddddddddd");
     // unsigned long nonce = 0;
     // while (nonce < MAX_NONCE)
     // {
