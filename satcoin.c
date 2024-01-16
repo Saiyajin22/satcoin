@@ -193,15 +193,19 @@ void sha256ProcessChunk(unsigned int *state, unsigned int *chunk)
     globalState[7] = *(state + 7);
 }
 
-int getNumberOfChunks(int dataLen) {
+int getNumberOfChunks(int dataLen)
+{
     int numberOfChunks = 0;
     if (dataLen <= 55)
     {
         return 1;
-    } else {
+    }
+    else
+    {
         dataLen -= 56;
         numberOfChunks++;
-        while(dataLen >= 0) {
+        while (dataLen >= 0)
+        {
             dataLen -= 64;
             numberOfChunks++;
         }
@@ -212,11 +216,9 @@ int getNumberOfChunks(int dataLen) {
 int sha256(char *data)
 {
     unsigned int state[8];
-    unsigned int chunk[16];
     int dataLen = strlen(data);
-
     int numberOfChunks = getNumberOfChunks(dataLen);
-    printf("number of chunks: %d\n", numberOfChunks);
+    unsigned int chunk[2][16];
 
     // Set initial state of sha256.
     sha256InitState(state);
@@ -233,8 +235,15 @@ int sha256(char *data)
     // Indexes, used for the calculation
     int lineIndex = 0;
     int chunkIndex = 0;
+    int chunkCount = 0;
     for (int i = 0; i < dataLen; i++)
     {
+        // When we reach modulo 56, it has to be a new chunk
+        if (i % 64 == 56)
+        {
+            chunkCount++;
+            chunkIndex = 0;
+        }
         // This holds the i element of the data array in binary form
         char bits[8];
         for (int j = 0; j < 8; j++)
@@ -259,7 +268,7 @@ int sha256(char *data)
             char *end;
             unsigned int part;
             part = strtoul(line, &end, 2);
-            chunk[chunkIndex++] = part;
+            chunk[chunkCount][chunkIndex++] = part;
             // chunk[chunkIndex++] = convertStringToBinary(line);
 
             lineIndex = 0;
@@ -279,7 +288,7 @@ int sha256(char *data)
     char *end;
     unsigned int part;
     part = strtoul(line, &end, 2);
-    chunk[chunkIndex++] = part;
+    chunk[chunkCount][chunkIndex++] = part;
 
     lineIndex = 0;
     for (int i = 0; i < 32; i++)
@@ -287,20 +296,32 @@ int sha256(char *data)
         line[i] = '0';
     }
 
-    for (int i = chunkIndex; i < 16; i++)
-    {
-        if (i == 15)
+    for(int i = chunkCount; i < numberOfChunks; i++) {
+        for (int j = chunkIndex; j < 16; j++)
         {
-            chunk[i] = dataLen * 8;
+            if (i == numberOfChunks-1 && j == 15)
+            {
+                chunk[i][j] = dataLen * 8;
+            }
+            else
+            {
+                chunk[i][j] = 0b00000000000000000000000000000000;
+            }
         }
-        else
-        {
-            chunk[i] = 0b00000000000000000000000000000000;
-        }
+        chunkIndex = 0;
     }
+    
 
-    // Process it.
-    sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
+    // Process chunks
+    for (int i = 0; i < numberOfChunks; i++)
+    {
+        unsigned int chunkPart[16];
+        for (int j = 0; j < 16; j++)
+        {
+            chunkPart[j] = chunk[i][j];
+        }
+        sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunkPart);
+    }
 
     // print hash.
     printHashNormalWay(state);
@@ -456,7 +477,7 @@ unsigned int input_block2[16] = {
 
 int main(int argc, void *argv[])
 {
-    sha256("hello worldddddddddddddddddddddddddddddddddddddddddddddddddd");
+    sha256("hello worldddddddddddddddddddddddddddddddddddddddddddddd");
     // unsigned long nonce = 0;
     // while (nonce < MAX_NONCE)
     // {
