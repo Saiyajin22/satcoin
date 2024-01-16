@@ -23,11 +23,11 @@ void printHashReverse(unsigned int *state)
     {
         if (n == 0)
         {
-            printf("%x", state[n]);
+            printf("%08x", state[n]);
         }
         else
         {
-            printf("%x-", state[n]);
+            printf("%08x-", state[n]);
         }
     }
     printf("\n");
@@ -40,11 +40,11 @@ void printHashNormalWay(unsigned int *state)
     {
         if (n == 7)
         {
-            printf("%x", state[n]);
+            printf("%08x", state[n]);
         }
         else
         {
-            printf("%x-", state[n]);
+            printf("%08x-", state[n]);
         }
     }
     printf("\n");
