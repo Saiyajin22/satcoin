@@ -218,7 +218,7 @@ int sha256(char *data)
     unsigned int state[8];
     int dataLen = strlen(data);
     int numberOfChunks = getNumberOfChunks(dataLen);
-    unsigned int chunk[2][16];
+    unsigned int chunk[numberOfChunks][16];
 
     // Set initial state of sha256.
     sha256InitState(state);
@@ -465,10 +465,9 @@ unsigned int input_block2[16] = {
 //     chunk[n] = pad1[n - 8];
 // }
 
-
 int main(int argc, void *argv[])
 {
-    sha256("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7aasaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    sha256("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7aasaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaddd");
     // unsigned long nonce = 0;
     // while (nonce < MAX_NONCE)
     // {
