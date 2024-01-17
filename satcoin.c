@@ -205,7 +205,7 @@ int getNumberOfChunks(int dataLen)
     return numberOfChunks;
 }
 
-int sha256(char *data)
+char* sha256(char *data)
 {
     unsigned int state[8];
     int dataLen = strlen(data);
@@ -317,7 +317,11 @@ int sha256(char *data)
     // print hash.
     printHashNormalWay(state);
 
-    sha256InitState(state);
+    char* result = malloc(65);
+    sprintf(result, "%08x%08x%08x%08x%08x%08x%08x%08x",
+            state[0], state[1], state[2], state[3],
+            state[4], state[5], state[6], state[7]);
+    return result;
 };
 #ifdef CBMC
 // set the nonce to a non-deterministic value
@@ -450,7 +454,7 @@ unsigned int input_block2[16] = {
 
 int main(int argc, void *argv[])
 {
-    sha256("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7aasaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaddd");
+    char* hash = sha256(sha256("hello world"));
     // unsigned long nonce = 0;
     // while (nonce < MAX_NONCE)
     // {
@@ -467,5 +471,6 @@ int main(int argc, void *argv[])
     //     nonce++;
     // }
 
+    free(hash);
     return 0;
 }
