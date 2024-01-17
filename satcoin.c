@@ -238,12 +238,6 @@ int sha256(char *data)
     int chunkCount = 0;
     for (int i = 0; i < dataLen; i++)
     {
-        // When we reach modulo 56, it has to be a new chunk
-        if (i % 64 == 56)
-        {
-            chunkCount++;
-            chunkIndex = 0;
-        }
         // This holds the i element of the data array in binary form
         char bits[8];
         for (int j = 0; j < 8; j++)
@@ -269,7 +263,12 @@ int sha256(char *data)
             unsigned int part;
             part = strtoul(line, &end, 2);
             chunk[chunkCount][chunkIndex++] = part;
-            // chunk[chunkIndex++] = convertStringToBinary(line);
+            // When we reach chunkIndex 16, a new chunk will be created
+            if (chunkIndex >= 16)
+            {
+                chunkIndex = 0;
+                chunkCount++;
+            }
 
             lineIndex = 0;
             for (int i = 0; i < 32; i++)
@@ -296,10 +295,11 @@ int sha256(char *data)
         line[i] = '0';
     }
 
-    for(int i = chunkCount; i < numberOfChunks; i++) {
+    for (int i = chunkCount; i < numberOfChunks; i++)
+    {
         for (int j = chunkIndex; j < 16; j++)
         {
-            if (i == numberOfChunks-1 && j == 15)
+            if (i == numberOfChunks - 1 && j == 15)
             {
                 chunk[i][j] = dataLen * 8;
             }
@@ -310,7 +310,6 @@ int sha256(char *data)
         }
         chunkIndex = 0;
     }
-    
 
     // Process chunks
     for (int i = 0; i < numberOfChunks; i++)
@@ -466,18 +465,10 @@ unsigned int input_block2[16] = {
 //     chunk[n] = pad1[n - 8];
 // }
 
-// // // State is initialized.
-// sha256InitState((unsigned int *)&state);
-
-// // // Chunk is processed.
-// sha256ProcessChunk((unsigned int *)&state, (unsigned int *)&chunk);
-
-// // // print hash.
-// printHashNormalWay(state);
 
 int main(int argc, void *argv[])
 {
-    sha256("hello worldddddddddddddddddddddddddddddddddddddddddddddd");
+    sha256("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7aasaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     // unsigned long nonce = 0;
     // while (nonce < MAX_NONCE)
     // {
