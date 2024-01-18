@@ -287,7 +287,8 @@ void processblocks(char *filename)
 }
 
 unsigned int input_block[20] = {
-    16777216,
+    16777216, // 0x01000000
+    0,        // 0x00000000
     0,
     0,
     0,
@@ -295,19 +296,18 @@ unsigned int input_block[20] = {
     0,
     0,
     0,
-    0,
-    1000599037,
-    2054886066,
-    2059873342,
-    1735823201,
-    2143820739,
-    2290766130,
-    983546026,
-    1260281418,
-    699096905,
-    4294901789,
+    1000599037, // 0x3BA3EDFD
+    2054886066, // 0x7A7B12B2
+    2059873342, // 0x7AC72C3E
+    1735823201, // 0x67768F61
+    2143820739, // 0x7FC81BC3
+    2290766130, // 0x888A5132
+    983546026,  // 0x3A9FB8AA
+    1260281418, // 0x4B1E5E4A
+    699096905,  // 0x29AB5F49
+    4294901789, // 0xFFFF001D
     // 497822588}; // correct nonce
-    250508269}; // randomly picked nonce which will be overwritten
+    250508269}; // 0x0EEE73ED // randomly picked nonce which will be overwritten
 
 /*unsigned int input_block[20] = {
  16777216,
