@@ -306,8 +306,8 @@ unsigned int input_block[20] = {
     1260281418,
     699096905,
     4294901789,
-    // 497822588}; // correct nonce
-    250508269}; // randomly picked nonce which will be overwritten
+    497822588}; // correct nonce
+    // 250508269}; // randomly picked nonce which will be overwritten
 
 /*unsigned int input_block[20] = {
  16777216,
