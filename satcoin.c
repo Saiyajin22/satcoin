@@ -11,6 +11,41 @@
 int bc = 0;
 unsigned int prevtarget = 0;
 
+/**
+ * @brief Prints The hash in Heusser's OG way, because he says it's a big retarded big endian number...
+ * 
+ * @param state The state of the hash
+ */
+void printHashInHeussersWay(unsigned int *state)
+{
+    printf("Printing hash in Heusser's original way:\n");
+    for (int n = 7; n >= 0; n--)
+    {
+        printf("%02x-", state[n] & 0xff);
+        printf("%02x-", (state[n] >> 8) & 0xff);
+        printf("%02x-", (state[n] >> 16) & 0xff);
+        printf("%02x-", (state[n] >> 24) & 0xff);
+    }
+    printf("\n");
+}
+
+void printHashNormalWay(unsigned int *state)
+{
+    printf("NORMAL WAY HASH: \n");
+    for (int n = 0; n < 8; n++)
+    {
+        if (n == 7)
+        {
+            printf("%08x", state[n]);
+        }
+        else
+        {
+            printf("%08x-", state[n]);
+        }
+    }
+    printf("\n");
+}
+
 // SHA STUFF START -----------------------------------------------------------------
 unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
 
@@ -108,21 +143,23 @@ int verifyhash(unsigned int *block)
 {
     unsigned int state[8];
     unsigned int chunk[16];
-    int n;
-    unsigned int *u_nonce = ((unsigned int *)block + 16 + 3);
+    unsigned int *u_nonce = ((unsigned int *)block + 16 + 3); // This element will be replaced via the u_nonce pointer
     // unsigned int *u_timestamp = ((unsigned int *)block+16+2);
 
     // Set initial state of sha256.
     sha_initstate((unsigned int *)&state);
 
     // The block consists of 20 32bit variables, and the first 16 of these make up the first chunk.
-    for (n = 0; n < 16; n++)
+    for (int i = 0; i < 16; i++)
     {
-        chunk[n] = *(block + n);
+        chunk[i] = *(block + i);
     }
 
     // Process it.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
+
+    printHashInHeussersWay(state);
+    printHashNormalWay(state);
 
 #ifdef CBMC
     // set the nonce to a non-deterministic value
@@ -157,21 +194,22 @@ int verifyhash(unsigned int *block)
 #endif
 
     // The last 4 int's go together with some padding to make the second and final chunk.
-    for (n = 0; n < 4; n++)
+    for (int i = 0; i < 4; i++)
     {
-        chunk[n] = *(block + 16 + n);
+        chunk[i] = *(block + 16 + i);
     }
-    for (n = 4; n < 16; n++)
-        chunk[n] = pad0[n - 4];
+    for (int i = 4; i < 16; i++)
+        chunk[i] = pad0[i - 4];
 
     // And is processed, giving the hash.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
+    // 2ND HASH - The hash will be hashed again, so is copied into the chunk buffer
     // This hash will be hashed again, so is copied into the chunk buffer, and padding is added.
-    for (n = 0; n < 8; n++)
-        chunk[n] = state[n];
-    for (n = 8; n < 16; n++)
-        chunk[n] = pad1[n - 8];
+    for (int i = 0; i < 8; i++)
+        chunk[i] = state[i];
+    for (int i = 8; i < 16; i++)
+        chunk[i] = pad1[i - 8];
 
     // State is initialized.
     sha_initstate((unsigned int *)&state);
@@ -241,14 +279,8 @@ int verifyhash(unsigned int *block)
 
 #ifndef CBMC
     // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
-    for (n = 7; n >= 0; n--)
-    {
-        printf("%02x-", state[n] & 0xff);
-        printf("%02x-", (state[n] >> 8) & 0xff);
-        printf("%02x-", (state[n] >> 16) & 0xff);
-        printf("%02x-", (state[n] >> 24) & 0xff);
-    }
-    printf("\n");
+    printHashInHeussersWay(state);
+    printHashNormalWay(state);
 #endif
 
     return (0);
@@ -306,8 +338,27 @@ unsigned int input_block[20] = {
     1260281418, // 0x4B1E5E4A
     699096905,  // 0x29AB5F49
     4294901789, // 0xFFFF001D
-    // 497822588}; // correct nonce
-    250508269}; // 0x0EEE73ED // randomly picked nonce which will be overwritten
+    497822588}; // correct nonce
+    // 250508269}; // 0x0EEE73ED // randomly picked nonce which will be overwritten
+
+// 0b10000000000000000000000000000000 == 0x80000000 == 2147483648
+unsigned int input_block_h[16] = {
+    0b01101000011001010110110001101100,
+    0b01101111001000000111011101101111,
+    0b01110010011011000110010010000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000001011000};
 
 /*unsigned int input_block[20] = {
  16777216,
