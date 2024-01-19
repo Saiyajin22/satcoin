@@ -13,7 +13,7 @@ unsigned int prevtarget = 0;
 
 /**
  * @brief Prints The hash in Heusser's OG way, because he says it's a big retarded big endian number...
- * 
+ *
  * @param state The state of the hash
  */
 void printHashInHeussersWay(unsigned int *state)
@@ -225,16 +225,17 @@ int verifyhash(unsigned int *block)
     // encode structure of hash below target with leading zeros
     //
     __CPROVER_assume(
-        (unsigned char)(state[7] & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
+        (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+        (unsigned char)((state[7] >> 16) & 0xff) == 0x00);
+        // (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+        // (unsigned char)((state[7] >> 24) & 0xff) == 0x00); //&&
                                                            //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
 
-    int flag = 0;
+    int flag = 1;
     // if((unsigned char)((state[6]) & 0xff) != 0x00) {
-    if ((unsigned char)((state[7] >> 24) & 0xff) != 0x00)
+    if ((unsigned char)((state[7] >> 24) & 0xff) == 0x00)
     {
-        flag = 1;
+        flag = 0;
     }
     // counterexample to this will contain an additional leading 0 in the hash which makes it below target
     assert(flag == 1);
@@ -320,14 +321,14 @@ void processblocks(char *filename)
 
 unsigned int input_block[20] = {
     16777216, // 0x01000000
-    0,        // 0x00000000
+    122,        // 0x00000000
+    0,
+    322222,
+    2222222222, // MODIFIED FOR TEST
     0,
     0,
     0,
-    0,
-    0,
-    0,
-    0,
+    3333333333,
     1000599037, // 0x3BA3EDFD
     2054886066, // 0x7A7B12B2
     2059873342, // 0x7AC72C3E
@@ -338,8 +339,8 @@ unsigned int input_block[20] = {
     1260281418, // 0x4B1E5E4A
     699096905,  // 0x29AB5F49
     4294901789, // 0xFFFF001D
-    497822588}; // correct nonce
-    // 250508269}; // 0x0EEE73ED // randomly picked nonce which will be overwritten
+    // 497822588}; // correct nonce
+    250508269}; // 0x0EEE73ED // randomly picked nonce which will be overwritten
 
 // 0b10000000000000000000000000000000 == 0x80000000 == 2147483648
 unsigned int input_block_h[16] = {
@@ -391,5 +392,6 @@ unsigned int input_block_h[16] = {
 int main(int argc, void *argv[])
 {
     verifyhash(&input_block[0]);
+    // processblocks("blocks.txt");
     return 0;
 }
