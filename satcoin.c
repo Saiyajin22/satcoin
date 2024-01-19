@@ -321,14 +321,14 @@ void processblocks(char *filename)
 
 unsigned int input_block[20] = {
     16777216, // 0x01000000
-    122,        // 0x00000000
-    0,
-    322222,
-    2222222222, // MODIFIED FOR TEST
+    0,        // 0x00000000
     0,
     0,
+    0, // MODIFIED FOR TEST
     0,
-    3333333333,
+    0,
+    0,
+    0,
     1000599037, // 0x3BA3EDFD
     2054886066, // 0x7A7B12B2
     2059873342, // 0x7AC72C3E
