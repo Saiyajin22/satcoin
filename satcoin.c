@@ -11,6 +11,72 @@
 int bc = 0;
 unsigned int prevtarget = 0;
 
+#define MAX_NONCE 4294967295
+
+void printHashReverse(unsigned int *state)
+{
+    printf("REVERSE HASH: \n");
+    for (int n = 7; n >= 0; n--)
+    {
+        if (n == 0)
+        {
+            printf("%08x", state[n]);
+        }
+        else
+        {
+            printf("%08x-", state[n]);
+        }
+    }
+    printf("\n");
+}
+
+void printFullReversedHash(unsigned int *state)
+{
+    printf("FULL REVERSE HASH: \n");
+    for (int n = 7; n >= 0; n--)
+    {
+        printf("%01x", state[n] & 0b1111);
+        printf("%01x", (state[n] >> 4) & 0b1111);
+        printf("%01x", (state[n] >> 8) & 0b1111);
+        printf("%01x", (state[n] >> 12) & 0b1111);
+        printf("%01x", (state[n] >> 16) & 0b1111);
+        printf("%01x", (state[n] >> 20) & 0b1111);
+        printf("%01x", (state[n] >> 24) & 0b1111);
+        printf("%01x", (state[n] >> 28) & 0b1111);
+    }
+    printf("\n");
+}
+
+void printHeussersOriginalWayHash(unsigned int *state) {
+    // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
+    printf("PRINT HASH HEUSSERS ORIGINAL WAY: \n");
+    for (int n = 7; n >= 0; n--)
+    {
+        printf("%02x-", state[n] & 0xff);
+        printf("%02x-", (state[n] >> 8) & 0xff);
+        printf("%02x-", (state[n] >> 16) & 0xff);
+        printf("%02x-", (state[n] >> 24) & 0xff);
+    }
+    printf("\n");
+}
+
+void printHashNormalWay(unsigned int *state)
+{
+    printf("NORMAL WAY HASH: \n");
+    for (int n = 0; n < 8; n++)
+    {
+        if (n == 7)
+        {
+            printf("%08x", state[n]);
+        }
+        else
+        {
+            printf("%08x-", state[n]);
+        }
+    }
+    printf("\n");
+}
+
 // SHA STUFF START -----------------------------------------------------------------
 unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
 
@@ -240,15 +306,8 @@ int verifyhash(unsigned int *block)
 #endif
 
 #ifndef CBMC
-    // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
-    for (n = 7; n >= 0; n--)
-    {
-        printf("%02x-", state[n] & 0xff);
-        printf("%02x-", (state[n] >> 8) & 0xff);
-        printf("%02x-", (state[n] >> 16) & 0xff);
-        printf("%02x-", (state[n] >> 24) & 0xff);
-    }
-    printf("\n");
+    printHeussersOriginalWayHash(state);
+    printFullReversedHash(state);
 #endif
 
     return (0);
@@ -306,8 +365,8 @@ unsigned int input_block[20] = {
     1260281418,
     699096905,
     4294901789,
-    // 497822588}; // correct nonce
-    250508269}; // randomly picked nonce which will be overwritten
+    497822588}; // correct nonce
+// 250508269}; // randomly picked nonce which will be overwritten
 
 /*unsigned int input_block[20] = {
  16777216,
