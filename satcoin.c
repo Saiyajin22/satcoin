@@ -35,19 +35,20 @@ void printFullReversedHash(unsigned int *state)
     printf("FULL REVERSE HASH: \n");
     for (int n = 7; n >= 0; n--)
     {
-        printf("%01x", state[n] & 0b1111);
-        printf("%01x", (state[n] >> 4) & 0b1111);
+        printf("%01x", state[n] & 0b1111);        // Last number of the 8 digit hex
+        printf("%01x", (state[n] >> 4) & 0b1111); // ....
         printf("%01x", (state[n] >> 8) & 0b1111);
         printf("%01x", (state[n] >> 12) & 0b1111);
         printf("%01x", (state[n] >> 16) & 0b1111);
-        printf("%01x", (state[n] >> 20) & 0b1111);
-        printf("%01x", (state[n] >> 24) & 0b1111);
-        printf("%01x", (state[n] >> 28) & 0b1111);
+        printf("%01x", (state[n] >> 20) & 0b1111); // .....
+        printf("%01x", (state[n] >> 24) & 0b1111); // Second number of the 8 digit hex
+        printf("%01x", (state[n] >> 28) & 0b1111); // First number of the 8 digit hex
     }
     printf("\n");
 }
 
-void printHeussersOriginalWayHash(unsigned int *state) {
+void printHeussersOriginalWayHash(unsigned int *state)
+{
     // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
     printf("PRINT HASH HEUSSERS ORIGINAL WAY: \n");
     for (int n = 7; n >= 0; n--)
@@ -194,6 +195,10 @@ int verifyhash(unsigned int *block)
     // set the nonce to a non-deterministic value
     *u_nonce = nondet_uint();
 
+    if(*u_nonce < 3000000) {
+        assert(0);
+    }
+
 #ifdef SATCNF
     // make sure the valid nonce is in the range
     unsigned nonce_start = 497822588 - SATCNF;
@@ -253,14 +258,14 @@ int verifyhash(unsigned int *block)
     // encode structure of hash below target with leading zeros
     //
     __CPROVER_assume(
-        (unsigned char)(state[7] & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
+        (unsigned char)((state[7] >> 28) & 0b1111) == 0b0000 &&
+        (unsigned char)((state[7] >> 24) & 0b1111) == 0b0000);
+        // (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
                                                            //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
 
     int flag = 0;
     // if((unsigned char)((state[6]) & 0xff) != 0x00) {
-    if ((unsigned char)((state[7] >> 24) & 0xff) != 0x00)
+    if ((unsigned char)((state[7] >> 24) & 0b1111) != 0b0000)
     {
         flag = 1;
     }
@@ -308,6 +313,7 @@ int verifyhash(unsigned int *block)
 #ifndef CBMC
     printHeussersOriginalWayHash(state);
     printFullReversedHash(state);
+    printHashNormalWay(state);
 #endif
 
     return (0);
@@ -354,7 +360,7 @@ unsigned int input_block[20] = {
     0,
     0,
     0,
-    0,
+    1000599037, // modified, original is 0
     1000599037,
     2054886066,
     2059873342,
@@ -365,8 +371,8 @@ unsigned int input_block[20] = {
     1260281418,
     699096905,
     4294901789,
-    497822588}; // correct nonce
-// 250508269}; // randomly picked nonce which will be overwritten
+    // 497822588}; // correct nonce
+    250508269}; // randomly picked nonce which will be overwritten
 
 /*unsigned int input_block[20] = {
  16777216,
