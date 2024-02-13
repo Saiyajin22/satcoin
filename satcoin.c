@@ -195,36 +195,7 @@ int verifyhash(unsigned int *block)
     // set the nonce to a non-deterministic value
     *u_nonce = nondet_uint();
 
-    if(*u_nonce < 3000000) {
-        assert(0);
-    }
-
-#ifdef SATCNF
-    // make sure the valid nonce is in the range
-    unsigned nonce_start = 497822588 - SATCNF;
-    unsigned nonce_end = 497822588 + SATCNF;
-    __CPROVER_assume(*u_nonce > nonce_start && *u_nonce < nonce_end); // used nonce should stay in the given range
-#else
-#ifdef UNSATCNF
-    // make sure the valid nonce is not in the range
-    unsigned nonce_start = 497822588;
-    unsigned nonce_end = nonce_start + UNSATCNF + UNSATCNF;
-    __CPROVER_assume(*u_nonce > nonce_start && *u_nonce < nonce_end); // used nonce should stay in the given range
-#else
-
-    /* =============================== GENESIS BLOCK ============================================= */
-    //__CPROVER_assume(*u_nonce > 0 && *u_nonce < 10);
-    __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
-                                                                    /* =============================== GENESIS BLOCK ============================================= */
-                                                                    /* =============================== BLOCK 218430 ============================================== */
-                                                                    //__CPROVER_assume(*u_nonce > 4043570728 && *u_nonce < 4043570731);
-                                                                    /* =============================== BLOCK 218430 ============================================== */
-
-#endif // else UNSATCNF
-#endif // else SATCNF
+    // __CPROVER_assume(*u_nonce == 250508269);
 #endif
 
     // The last 4 int's go together with some padding to make the second and final chunk.
@@ -258,14 +229,14 @@ int verifyhash(unsigned int *block)
     // encode structure of hash below target with leading zeros
     //
     __CPROVER_assume(
-        (unsigned char)((state[7] >> 28) & 0b1111) == 0b0000 &&
-        (unsigned char)((state[7] >> 24) & 0b1111) == 0b0000);
-        // (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
-                                                           //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
+        (unsigned char)((state[0] >> 28) & 0b1111) == 0b0000);
+    // (unsigned char)((state[7] >> 24) & 0b1111) == 0b0000);
+    // (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
+    //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
 
     int flag = 0;
     // if((unsigned char)((state[6]) & 0xff) != 0x00) {
-    if ((unsigned char)((state[7] >> 24) & 0b1111) != 0b0000)
+    if ((unsigned char)((state[0] >> 28) & 0b1111) != 0b0000)
     {
         flag = 1;
     }
@@ -314,6 +285,7 @@ int verifyhash(unsigned int *block)
     printHeussersOriginalWayHash(state);
     printFullReversedHash(state);
     printHashNormalWay(state);
+    printf("(state[0] >> 28): %d\n", (unsigned char)((state[0] >> 28) & 0b1111) == 0b0000);
 #endif
 
     return (0);
@@ -360,7 +332,7 @@ unsigned int input_block[20] = {
     0,
     0,
     0,
-    1000599037, // modified, original is 0
+    1291, // modified, original is 0
     1000599037,
     2054886066,
     2059873342,
@@ -371,8 +343,8 @@ unsigned int input_block[20] = {
     1260281418,
     699096905,
     4294901789,
-    // 497822588}; // correct nonce
-    250508269}; // randomly picked nonce which will be overwritten
+    497822588}; // it will be overwritten to: 2869192501 which is the correct nonce in this case
+// 250508269};
 
 /*unsigned int input_block[20] = {
  16777216,
@@ -405,5 +377,6 @@ unsigned int input_block[20] = {
 int main(int argc, void *argv[])
 {
     verifyhash(&input_block[0]);
+
     return 0;
 }
