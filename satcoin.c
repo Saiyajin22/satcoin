@@ -1,10 +1,3 @@
-/* SAT-based bitcoin mining proof of concept. Follow the instructions at:
-    http://jheusser.github.io/2013/12/30/satcoin-code.html
-*/
-
-// Target is actually stored in the header for each block, in the "bits" field, as a 3
-// byte value and a 1 byte shift value displacing the 3 bytes.
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -231,16 +224,16 @@ int verifyhash(unsigned int *block)
     __CPROVER_assume(
         (unsigned char)((state[0] >> 28) & 0b1111) == 0b0000);
     // (unsigned char)((state[7] >> 24) & 0b1111) == 0b0000);
-    // (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
-    //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
+    // (unsigned char)((state[7] >> 16) & 0xff) == 0x00);
 
     int flag = 0;
-    // if((unsigned char)((state[6]) & 0xff) != 0x00) {
+
     if ((unsigned char)((state[0] >> 28) & 0b1111) != 0b0000)
     {
         flag = 1;
     }
-    // counterexample to this will contain an additional leading 0 in the hash which makes it below target
+
+    // When this assertion fails, a counterexample will be produced, containing a valid nonce
     assert(flag == 1);
     /* =============================== GENESIS BLOCK ============================================= */
     /* =============================== BLOCK 218430 ============================================== */
@@ -282,10 +275,10 @@ int verifyhash(unsigned int *block)
 #endif
 
 #ifndef CBMC
-    printHeussersOriginalWayHash(state);
-    printFullReversedHash(state);
+    // printHeussersOriginalWayHash(state);
+    // printFullReversedHash(state);
     printHashNormalWay(state);
-    printf("(state[0] >> 28): %d\n", (unsigned char)((state[0] >> 28) & 0b1111) == 0b0000);
+    printf("(unsigned char)((state[0] >> 28) & 0b1111) == 0b0000: %d\n", (unsigned char)((state[0] >> 28) & 0b1111) == 0b0000);
 #endif
 
     return (0);
@@ -332,7 +325,7 @@ unsigned int input_block[20] = {
     0,
     0,
     0,
-    1291, // modified, original is 0
+    0, // modified, original is 0
     1000599037,
     2054886066,
     2059873342,
@@ -343,36 +336,8 @@ unsigned int input_block[20] = {
     1260281418,
     699096905,
     4294901789,
-    497822588}; // it will be overwritten to: 2869192501 which is the correct nonce in this case
+    497822588}; // it will be overwritten to: 398547907 which is the correct nonce when the 9th element is the original, 0
 // 250508269};
-
-/*unsigned int input_block[20] = {
- 16777216,
-
- // prev block
- 1711699388,
- 2939744218,
- 3252212977,
- 2893103710,
- 2128873143,
- 1431457499,
- 3808690176,
- 0,
-
- // merkle
- 1803429671,
- 533048842,
- 3073754577,
- 1455291121,
- 3996402020,
- 4104720509,
- 1827684636,
- 4251965418,
-
- // time, bits, nonce
- 2004092497, 2980447514,// 1
- 4043570730
-}; */
 
 int main(int argc, void *argv[])
 {
