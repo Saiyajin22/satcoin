@@ -188,7 +188,7 @@ int verifyhash(unsigned int *block)
     // set the nonce to a non-deterministic value
     *u_nonce = nondet_uint();
 
-    // __CPROVER_assume(*u_nonce == 250508269);
+    __CPROVER_assume(*u_nonce > 0 && *u_nonce < 10);
 #endif
 
     // The last 4 int's go together with some padding to make the second and final chunk.
@@ -222,19 +222,35 @@ int verifyhash(unsigned int *block)
     // encode structure of hash below target with leading zeros
     //
     __CPROVER_assume(
-        (unsigned char)((state[0] >> 28) & 0b1111) == 0b0000);
-    // (unsigned char)((state[7] >> 24) & 0b1111) == 0b0000);
-    // (unsigned char)((state[7] >> 16) & 0xff) == 0x00);
+        (unsigned char)((state[0] >> 28) & 0b1111) == 0b0000 &&
+        (unsigned char)((state[0] >> 24) & 0b1111) == 0b0000 &&
+        (unsigned char)((state[0] >> 20) & 0b1111) == 0b0000 &&
+        (unsigned char)((state[0] >> 16) & 0b1111) == 0b0000);
+        // (unsigned char)((state[0] >> 12) & 0b1111) == 0b0000 &&
+        // (unsigned char)((state[0] >> 8) & 0b1111) == 0b0000 &&
+        // (unsigned char)((state[0] >> 4) & 0b1111) == 0b0000 &&
+        // (unsigned char)((state[0] >> 0) & 0b1111) == 0b0000 &&
+        // (unsigned char)((state[1] >> 28) & 0b1111) == 0b0000 &&
+        // (unsigned char)((state[1] >> 24) & 0b1111) == 0b0000)
 
-    int flag = 0;
+        int flag = 0;
 
-    if ((unsigned char)((state[0] >> 28) & 0b1111) != 0b0000)
+    if ((unsigned char)((state[0] >> 28) & 0b1111) == 0b0000 &&
+        (unsigned char)((state[0] >> 24) & 0b1111) == 0b0000 &&
+        (unsigned char)((state[0] >> 20) & 0b1111) == 0b0000 &&
+        (unsigned char)((state[0] >> 16) & 0b1111) == 0b0000)
+    // (unsigned char)((state[0] >> 12) & 0b1111) == 0b0000 &&
+    // (unsigned char)((state[0] >> 8) & 0b1111) == 0b0000 &&
+    // (unsigned char)((state[0] >> 4) & 0b1111) == 0b0000 &&
+    // (unsigned char)((state[0] >> 0) & 0b1111) == 0b0000 &&
+    // (unsigned char)((state[1] >> 28) & 0b1111) == 0b0000 &&
+    // (unsigned char)((state[1] >> 24) & 0b1111) == 0b0000)
     {
         flag = 1;
     }
 
     // When this assertion fails, a counterexample will be produced, containing a valid nonce
-    assert(flag == 1);
+    assert(flag == 0);
     /* =============================== GENESIS BLOCK ============================================= */
     /* =============================== BLOCK 218430 ============================================== */
     // 72d4ef030000b7fba3287cb2be97273002a5b3ffd3c19f3d3e-00 00 00-00 00 00 00
@@ -325,7 +341,7 @@ unsigned int input_block[20] = {
     0,
     0,
     0,
-    0, // modified, original is 0
+    1, // modified, original is 0
     1000599037,
     2054886066,
     2059873342,
