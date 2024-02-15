@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_NONCE 4294967295
+
 int bc = 0;
 unsigned int prevtarget = 0;
 
@@ -142,15 +144,15 @@ int verifyhash(unsigned int *block)
 #else
 
     /* =============================== GENESIS BLOCK ============================================= */
-    //__CPROVER_assume(*u_nonce > 0 && *u_nonce < 10);
-    __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
-                                                                    /* =============================== GENESIS BLOCK ============================================= */
-                                                                    /* =============================== BLOCK 218430 ============================================== */
-                                                                    //__CPROVER_assume(*u_nonce > 4043570728 && *u_nonce < 4043570731);
-                                                                    /* =============================== BLOCK 218430 ============================================== */
+    // __CPROVER_assume(*u_nonce >= 497822588 && *u_nonce <= 497822588); // 1 nonces only
+    __CPROVER_assume(*u_nonce >= 497822570 && *u_nonce <= 497822590); // 20 nonces
+    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
+    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
+    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
+    /* =============================== GENESIS BLOCK ============================================= */
+    /* =============================== BLOCK 218430 ============================================== */
+    //__CPROVER_assume(*u_nonce > 4043570728 && *u_nonce < 4043570731);
+    /* =============================== BLOCK 218430 ============================================== */
 
 #endif // else UNSATCNF
 #endif // else SATCNF
@@ -189,8 +191,9 @@ int verifyhash(unsigned int *block)
     __CPROVER_assume(
         (unsigned char)(state[7] & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
-                                                           //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
+        (unsigned char)((state[7] >> 16) & 0xff) == 0x00);
+        // (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+        // (unsigned char)((state[6] >> 0) & 0xff) == 0x00);
 
     int flag = 0;
     // if((unsigned char)((state[6]) & 0xff) != 0x00) {
