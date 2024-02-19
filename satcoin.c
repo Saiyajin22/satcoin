@@ -8,8 +8,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_NONCE 4294967295
+
 int bc = 0;
 unsigned int prevtarget = 0;
+
+void printHashReverse(unsigned int *state)
+{
+    printf("REVERSE HASH: \n");
+    for (int n = 7; n >= 0; n--)
+    {
+        if (n == 0)
+        {
+            printf("%08x", state[n]);
+        }
+        else
+        {
+            printf("%08x-", state[n]);
+        }
+    }
+    printf("\n");
+}
+
+void printHashNormalWay(unsigned int *state)
+{
+    printf("NORMAL WAY HASH: \n");
+    for (int n = 0; n < 8; n++)
+    {
+        if (n == 7)
+        {
+            printf("%08x", state[n]);
+        }
+        else
+        {
+            printf("%08x-", state[n]);
+        }
+    }
+    printf("\n");
+}
 
 // SHA STUFF START -----------------------------------------------------------------
 unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
@@ -102,6 +138,10 @@ unsigned int pad0[12] = {
     0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000280};
 
+unsigned int double_hash_pad[16] = {
+    0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000200};
+
 unsigned int pad1[8] = {0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000100};
 
 int verifyhash(unsigned int *block)
@@ -166,6 +206,29 @@ int verifyhash(unsigned int *block)
 
     // And is processed, giving the hash.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
+
+    char *result = malloc(65);
+    sprintf(result, "%08x%08x%08x%08x%08x%08x%08x%08x",
+            state[0], state[1], state[2], state[3],
+            state[4], state[5], state[6], state[7]);
+    printf("result: %c\n", result[0]);
+
+    char temp[5];
+    int tempCounter = 0;
+    int chunkCounter = 0;
+    for (int i = 0; i < 64; i++)
+    {
+        temp[tempCounter] = result[i];
+        if (tempCounter == 3)
+        {
+            char *endptr; // Pointer to character immediately after the converted number
+            long decimalNumber = strtol(temp, &endptr, 16);
+            chunk[chunkCounter++] = decimalNumber;
+            tempCounter = 0;
+        } else {
+            tempCounter++;
+        }
+    }
 
     // This hash will be hashed again, so is copied into the chunk buffer, and padding is added.
     for (n = 0; n < 8; n++)
@@ -241,6 +304,7 @@ int verifyhash(unsigned int *block)
 
 #ifndef CBMC
     // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
+    printHashNormalWay(state);
     for (n = 7; n >= 0; n--)
     {
         printf("%02x-", state[n] & 0xff);
@@ -286,7 +350,7 @@ void processblocks(char *filename)
     fclose(f);
 }
 
-unsigned int input_block[20] = {
+unsigned int genesis_input_block[20] = {
     16777216,
     0,
     0,
@@ -308,6 +372,29 @@ unsigned int input_block[20] = {
     4294901789,
     // 497822588}; // correct nonce
     250508269}; // randomly picked nonce which will be overwritten
+
+unsigned int input_block_example[20] = {
+    16777216,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1000599037,
+    2054886066,
+    2059873342,
+    1735823201,
+    2143820739,
+    2290766130,
+    983546026,
+    1260281418,
+    699096905,
+    4294901789,
+    // 497822588}; // correct nonce
+    250508269};
 
 unsigned int block_780000[20] = {
     0x201b2000, // version field - GOOD
@@ -332,39 +419,98 @@ unsigned int block_780000[20] = {
     0xc0c02e28}; // correct nonce - GOOD
 // 250508269}; // randomly picked nonce which will be overwritten
 
+// representation of: helloworlddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+unsigned int input_block_ex[20] = {
+    0b01101000011001010110110001101100,
+    0b01101111011101110110111101110010,
+    0b01101100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100,
+    0b01100100011001000110010001100100};
+// c05d8c587992cc1e025bb37a6284a6f1e68fcd6420dd5c33a5d5c5023f49f73e
+
+unsigned int input_block_helloworld[16] = {
+    0b01101000011001010110110001101100,
+    0b01101111001000000111011101101111,
+    0b01110010011011000110010010000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000001011000};
+
+unsigned int input_block_helloworld_doublehash[16] = {
+    0b10111001010011010010011110111001, // Binary representation of: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9 + padding
+    0b10010011010011010011111000001000, // All chars should be separately encoded based on their ascii code's binary repr
+    0b10100101001011100101001011010111,
+    0b11011010011111011010101111111010,
+    0b11000100100001001110111111100011,
+    0b01111010010100111000000011101110,
+    0b10010000100010001111011110101100,
+    0b11100010111011111100110111101001,
+    0b10000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000000000000,
+    0b00000000000000000000000100000000};
+
 // 201b2000000000000000000000063a840d1ae5a1090da46e1ae749bf668ba9f7b2a30efe3ff040abd19b0675cb65c47b8069908f87a4d128d9e60a3179e9d294e87e94d6c74c9046170689a3c0c02e28
 
-    /*unsigned int input_block[20] = {
-     16777216,
+/*unsigned int input_block[20] = {
+ 16777216,
 
-     // prev block
-     1711699388,
-     2939744218,
-     3252212977,
-     2893103710,
-     2128873143,
-     1431457499,
-     3808690176,
-     0,
+ // prev block
+ 1711699388,
+ 2939744218,
+ 3252212977,
+ 2893103710,
+ 2128873143,
+ 1431457499,
+ 3808690176,
+ 0,
 
-     // merkle
-     1803429671,
-     533048842,
-     3073754577,
-     1455291121,
-     3996402020,
-     4104720509,
-     1827684636,
-     4251965418,
+ // merkle
+ 1803429671,
+ 533048842,
+ 3073754577,
+ 1455291121,
+ 3996402020,
+ 4104720509,
+ 1827684636,
+ 4251965418,
 
-     // time, bits, nonce
-     2004092497, 2980447514,// 1
-     4043570730
-    }; */
+ // time, bits, nonce
+ 2004092497, 2980447514,// 1
+ 4043570730
+}; */
 
-    int
-    main(int argc, void *argv[])
+int main(int argc, void *argv[])
 {
-    verifyhash(&block_780000[0]);
+    verifyhash(&input_block_ex[0]);
     return 0;
 }
