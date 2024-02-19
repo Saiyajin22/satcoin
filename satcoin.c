@@ -310,58 +310,61 @@ unsigned int input_block[20] = {
     250508269}; // randomly picked nonce which will be overwritten
 
 unsigned int block_780000[20] = {
-    0x201b2000, // version field
-    0x00000000, // beginning of prev hash
+    0x201b2000, // version field - GOOD
+    0x00000000, // beginning of prev hash - GOOD
     0x00000000,
     0x00063a84,
     0x0d1ae5a1,
     0x090da46e,
     0x1ae749bf,
     0x668ba9f7,
-    0xb2a30efe, // end of prev hash
-    0,
-    2054886066,
-    2059873342,
-    1735823201,
-    2143820739,
-    2290766130,
-    983546026,
-    1260281418,
-    699096905,
-    4294901789,
-    497822588}; // correct nonce
+    0xb2a30efe, // end of prev hash - GOOD
+    0x3ff040ab, // start of merkle root - GOOD
+    0xd19b0675,
+    0xcb65c47b,
+    0x8069908f,
+    0x87a4d128,
+    0xd9e60a31,
+    0x79e9d294,
+    0xe87e94d6,  // end of merkle root - GOOD
+    0xc74c9046,  // timestamp -
+    0x170689a3,  // bits - GOOD
+    0xc0c02e28}; // correct nonce - GOOD
 // 250508269}; // randomly picked nonce which will be overwritten
 
-/*unsigned int input_block[20] = {
- 16777216,
+// 201b2000000000000000000000063a840d1ae5a1090da46e1ae749bf668ba9f7b2a30efe3ff040abd19b0675cb65c47b8069908f87a4d128d9e60a3179e9d294e87e94d6c74c9046170689a3c0c02e28
 
- // prev block
- 1711699388,
- 2939744218,
- 3252212977,
- 2893103710,
- 2128873143,
- 1431457499,
- 3808690176,
- 0,
+    /*unsigned int input_block[20] = {
+     16777216,
 
- // merkle
- 1803429671,
- 533048842,
- 3073754577,
- 1455291121,
- 3996402020,
- 4104720509,
- 1827684636,
- 4251965418,
+     // prev block
+     1711699388,
+     2939744218,
+     3252212977,
+     2893103710,
+     2128873143,
+     1431457499,
+     3808690176,
+     0,
 
- // time, bits, nonce
- 2004092497, 2980447514,// 1
- 4043570730
-}; */
+     // merkle
+     1803429671,
+     533048842,
+     3073754577,
+     1455291121,
+     3996402020,
+     4104720509,
+     1827684636,
+     4251965418,
 
-int main(int argc, void *argv[])
+     // time, bits, nonce
+     2004092497, 2980447514,// 1
+     4043570730
+    }; */
+
+    int
+    main(int argc, void *argv[])
 {
-    verifyhash(&input_block[0]);
+    verifyhash(&block_780000[0]);
     return 0;
 }
