@@ -309,6 +309,29 @@ unsigned int input_block[20] = {
     // 497822588}; // correct nonce
     250508269}; // randomly picked nonce which will be overwritten
 
+unsigned int block_780000[20] = {
+    0x201b2000, // version field
+    0x00000000, // beginning of prev hash
+    0x00000000,
+    0x00063a84,
+    0x0d1ae5a1,
+    0x090da46e,
+    0x1ae749bf,
+    0x668ba9f7,
+    0xb2a30efe, // end of prev hash
+    0,
+    2054886066,
+    2059873342,
+    1735823201,
+    2143820739,
+    2290766130,
+    983546026,
+    1260281418,
+    699096905,
+    4294901789,
+    497822588}; // correct nonce
+// 250508269}; // randomly picked nonce which will be overwritten
+
 /*unsigned int input_block[20] = {
  16777216,
 
