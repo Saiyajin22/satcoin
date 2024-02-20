@@ -207,28 +207,31 @@ int verifyhash(unsigned int *block)
     // And is processed, giving the hash.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
-    char *result = malloc(65);
-    sprintf(result, "%08x%08x%08x%08x%08x%08x%08x%08x",
-            state[0], state[1], state[2], state[3],
-            state[4], state[5], state[6], state[7]);
-    printf("result: %c\n", result[0]);
+    // char *result = malloc(65);
+    // sprintf(result, "%08x%08x%08x%08x%08x%08x%08x%08x",
+    //         state[0], state[1], state[2], state[3],
+    //         state[4], state[5], state[6], state[7]);
+    // printf("first hash: %s\n", result);
 
-    char temp[5];
-    int tempCounter = 0;
-    int chunkCounter = 0;
-    for (int i = 0; i < 64; i++)
-    {
-        temp[tempCounter] = result[i];
-        if (tempCounter == 3)
-        {
-            char *endptr; // Pointer to character immediately after the converted number
-            long decimalNumber = strtol(temp, &endptr, 16);
-            chunk[chunkCounter++] = decimalNumber;
-            tempCounter = 0;
-        } else {
-            tempCounter++;
-        }
-    }
+    // char temp[5];
+    // int tempCounter = 0;
+    // int chunkCounter = 0;
+    // // Fill chunk correctly with the previous hash, to make the second hash.
+    // for (int i = 0; i < 64; i++)
+    // {
+    //     temp[tempCounter] = result[i];
+    //     if (tempCounter == 3)
+    //     {
+    //         char *endptr;
+    //         long decimalNumber = strtol(temp, &endptr, 16);
+    //         chunk[chunkCounter++] = decimalNumber;
+    //         tempCounter = 0;
+    //     }
+    //     else
+    //     {
+    //         tempCounter++;
+    //     }
+    // }
 
     // This hash will be hashed again, so is copied into the chunk buffer, and padding is added.
     for (n = 0; n < 8; n++)
@@ -236,11 +239,19 @@ int verifyhash(unsigned int *block)
     for (n = 8; n < 16; n++)
         chunk[n] = pad1[n - 8];
 
+    // Second hash
     // State is initialized.
     sha_initstate((unsigned int *)&state);
 
     // Chunk is processed.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
+
+    // for (int i = 0; i < 16; i++)
+    // {
+    //     chunk[i] = double_hash_pad[i];
+    // }
+
+    // sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
 #ifdef CBMC
     /* =============================== GENESIS BLOCK ============================================= */
@@ -370,8 +381,8 @@ unsigned int genesis_input_block[20] = {
     1260281418,
     699096905,
     4294901789,
-    // 497822588}; // correct nonce
-    250508269}; // randomly picked nonce which will be overwritten
+    497822588}; // correct nonce
+// 250508269}; // randomly picked nonce which will be overwritten
 
 unsigned int input_block_example[20] = {
     16777216,
@@ -396,6 +407,7 @@ unsigned int input_block_example[20] = {
     // 497822588}; // correct nonce
     250508269};
 
+// 1 element if 4 bytes, 1 hexadecimal character is 4 bits
 unsigned int block_780000[20] = {
     0x201b2000, // version field - GOOD
     0x00000000, // beginning of prev hash - GOOD
@@ -419,28 +431,31 @@ unsigned int block_780000[20] = {
     0xc0c02e28}; // correct nonce - GOOD
 // 250508269}; // randomly picked nonce which will be overwritten
 
-// representation of: helloworlddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
-unsigned int input_block_ex[20] = {
-    0b01101000011001010110110001101100,
-    0b01101111011101110110111101110010,
-    0b01101100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100,
-    0b01100100011001000110010001100100};
+// Hex representation of block 780000
+// 201b2000000000000000000000063a840d1ae5a1090da46e1ae749bf668ba9f7b2a30efe3ff040abd19b0675cb65c47b8069908f87a4d128d9e60a3179e9d294e87e94d6c74c9046170689a3c0c02e28
+
+    // representation of: helloworlddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+    unsigned int input_block_ex[20] = {
+        0b01101000011001010110110001101100,
+        0b01101111011101110110111101110010,
+        0b01101100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100,
+        0b01100100011001000110010001100100};
 // c05d8c587992cc1e025bb37a6284a6f1e68fcd6420dd5c33a5d5c5023f49f73e
 
 unsigned int input_block_helloworld[16] = {
@@ -481,6 +496,16 @@ unsigned int input_block_helloworld_doublehash[16] = {
 
 // 201b2000000000000000000000063a840d1ae5a1090da46e1ae749bf668ba9f7b2a30efe3ff040abd19b0675cb65c47b8069908f87a4d128d9e60a3179e9d294e87e94d6c74c9046170689a3c0c02e28
 
+// genesis block hash splitted
+// 01000000000000000000000000000000
+// 00000000000000000000000000000000
+// 000000003BA3EDFD7A7B12B27AC72C3E
+// 67768F617FC81BC3888A51323A9FB8AA
+// 4B1E5E4A29AB5F49FFFF001D1DAC2B7C
+
+// genesis block hash one line
+// 0100000000000000000000000000000000000000000000000000000000000000000000003BA3EDFD7A7B12B27AC72C3E67768F617FC81BC3888A51323A9FB8AA4B1E5E4A29AB5F49FFFF001D1DAC2B7C
+
 /*unsigned int input_block[20] = {
  16777216,
 
@@ -511,6 +536,6 @@ unsigned int input_block_helloworld_doublehash[16] = {
 
 int main(int argc, void *argv[])
 {
-    verifyhash(&input_block_ex[0]);
+    verifyhash(&block_780000[0]);
     return 0;
 }
