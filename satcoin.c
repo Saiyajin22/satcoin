@@ -1,9 +1,5 @@
-/* SAT-based bitcoin mining proof of concept. Follow the instructions at:
-    http://jheusser.github.io/2013/12/30/satcoin-code.html
-*/
-
-// Target is actually stored in the header for each block, in the "bits" field, as a 3
-// byte value and a 1 byte shift value displacing the 3 bytes.
+/*Sat Based Bitcoin mining*/
+/*Based on: https://jheusser.github.io/2013/02/03/satcoin.html*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,23 +9,7 @@
 int bc = 0;
 unsigned int prevtarget = 0;
 
-void printHashReverse(unsigned int *state)
-{
-    printf("REVERSE HASH: \n");
-    for (int n = 7; n >= 0; n--)
-    {
-        if (n == 0)
-        {
-            printf("%08x", state[n]);
-        }
-        else
-        {
-            printf("%08x-", state[n]);
-        }
-    }
-    printf("\n");
-}
-
+/*Helper functions*/
 void printHashNormalWay(unsigned int *state)
 {
     printf("NORMAL WAY HASH: \n");
@@ -47,7 +27,7 @@ void printHashNormalWay(unsigned int *state)
     printf("\n");
 }
 
-// SHA STUFF START -----------------------------------------------------------------
+/*SHA256 constant values for hashing*/
 unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
 
 unsigned int sha_k[64] = {
@@ -316,7 +296,6 @@ int verifyhash(unsigned int *block)
 #ifndef CBMC
     // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
     printHashNormalWay(state);
-    printHashReverse(state);
     for (n = 7; n >= 0; n--)
     {
         printf("%02x-", state[n] & 0xff);
