@@ -243,12 +243,18 @@ int verifyhash(unsigned int *block)
     __CPROVER_assume(
         (unsigned char)(state[7] & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
-                                                           //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
+        (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+        (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
+        (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
+        (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
 
     int flag = 0;
     // if((unsigned char)((state[6]) & 0xff) != 0x00) {
-    if ((unsigned char)((state[7] >> 24) & 0xff) != 0x00)
+    if ((unsigned char)((state[5] >> 8) & 0xff) != 0x00)
     {
         flag = 1;
     }
@@ -361,8 +367,8 @@ unsigned int genesis_input_block[20] = {
     1260281418,
     699096905,
     4294901789,
-    497822588}; // correct nonce
-// 250508269}; // randomly picked nonce which will be overwritten
+    // 497822588}; // correct nonce
+250508269}; // randomly picked nonce which will be overwritten
 
 unsigned int input_block_example[20] = {
     16777216,
@@ -435,7 +441,8 @@ unsigned int block_780000_from_api[20] = {
     0xab40f03f,
     0x7cc40964,
     0xa3890617,
-    0x282ec0c0};
+    // 0x282ec0c0}; // correct nonce
+    0x22222222}; // random nonce which will be overwritten
 
 // representation of: helloworlddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
 unsigned int input_block_ex[20] = {0b01101000011001010110110001101100, 0b01101111011101110110111101110010, 0b01101100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100};
