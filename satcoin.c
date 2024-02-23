@@ -3,7 +3,7 @@
 */
 
 // Target is actually stored in the header for each block, in the "bits" field, as a 3
-// byte value and a 1 byte shift value displacing the 3 bytes.
+// byte value and a 1 byte shift value displacing the 3 bytes..
 
 #include <stdio.h>
 #include <stdlib.h>
