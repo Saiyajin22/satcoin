@@ -226,8 +226,8 @@ void verifyhash(unsigned int *block)
     // __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
     // __CPROVER_assume(*u_nonce > 497822580 && *u_nonce < 497822590); // 10 nonces
     // __CPROVER_assume(*u_nonce > 497822580 && *u_nonce < 497822680); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
-    __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
+    __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
+    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
     // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
 
     /* =============================== BLOCK 218430 ============================================== */
@@ -270,10 +270,10 @@ void verifyhash(unsigned int *block)
 /* This is the part Where we assume the number of leading zeros, and make an assertion, which will fail, so CBMC detects the correct nonce */
 #ifdef CBMC
     /* =============================== GENESIS BLOCK ============================================= */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00);
-    // (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    __CPROVER_assume(
+        (unsigned char)(state[7] & 0xff) == 0x00 &&
+        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+        (unsigned char)((state[7] >> 16) & 0xff) == 0x00);
     // (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
     // (unsigned char)((state[6] >> 0) & 0xff) == 0x00);
 
@@ -303,7 +303,7 @@ void verifyhash(unsigned int *block)
 
     /* ============================= ASSERTION - Modify as needed ==================================================== */
     int flag = 0;
-    if ((unsigned char)((state[5] >> 0) & 0xff) == 0x00)
+    if ((unsigned char)((state[7] >> 24) & 0xff) == 0x00)
     {
         flag = 1;
     }
@@ -377,7 +377,7 @@ unsigned int genesis_block[20] = {
     699096905,
     4294901789,
     // 497822588}; // correct nonce
-    497822588}; // randomly picked nonce which will be overwritten
+    12312312}; // randomly picked nonce which will be overwritten
 
 unsigned int block_780000[20] = {
     0x00201b20,
