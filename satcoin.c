@@ -185,7 +185,7 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
 
 /*The main method which processes our input.
 It Includes double hashing, chunk processing, chunk creating.*/
-int verifyhash(unsigned int *block)
+void verifyhash(unsigned int *block)
 {
     unsigned int state[8];
     unsigned int chunk[16];
@@ -270,11 +270,25 @@ int verifyhash(unsigned int *block)
 /* This is the part Where we assume the number of leading zeros, and make an assertion, which will fail, so CBMC detects the correct nonce */
 #ifdef CBMC
     /* =============================== GENESIS BLOCK ============================================= */
-    // CBMCs view on state: 0a8ce26f72b3f1b646a2a6c14ff763ae65831e939c085ae1 0019d668 00 00 00 00
-    // this is before byteswap.
-    //
-    // encode structure of hash below target with leading zeros
-    // assumption for block 780000
+    // __CPROVER_assume(
+    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00);
+    // (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    // (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    // (unsigned char)((state[6] >> 0) & 0xff) == 0x00);
+
+    /* =============================== BLOCK 218430 ============================================== */
+    // 72d4ef030000b7fba3287cb2be97273002a5b3ffd3c19f3d3e-00 00 00-00 00 00 00
+    // __CPROVER_assume(
+    //    (unsigned char)(state[7] & 0xff) == 0x00 &&
+    //    (unsigned char)((state[7]>>8) & 0xff)  == 0x00 &&
+    //    (unsigned char)((state[7]>>16) & 0xff) == 0x00 &&
+    //    (unsigned char)((state[7]>>24) & 0xff) == 0x00 &&
+    //    (unsigned char)((state[6]>>8) & 0xff) == 0x00 &&
+    //    (unsigned char)((state[6]>>16) & 0xff) == 0x00);
+    //    (unsigned char)((state[6]>>24) & 0xff) == 0x00);
+
+    /* =============================== BLOCK 780000 ============================================= */
     // __CPROVER_assume(
     //     (unsigned char)(state[7] & 0xff) == 0x00 &&
     //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
@@ -287,59 +301,13 @@ int verifyhash(unsigned int *block)
     //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
     //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
 
-    // assumption for block genesis
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00);
-    // (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    // (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    // (unsigned char)((state[6] >> 0) & 0xff) == 0x00);
-
+    /* ============================= ASSERTION - Modify as needed ==================================================== */
     int flag = 0;
-    // if((unsigned char)((state[6]) & 0xff) != 0x00) {
     if ((unsigned char)((state[5] >> 0) & 0xff) == 0x00)
     {
         flag = 1;
     }
-    // counterexample to this will contain an additional leading 0 in the hash which makes it below target
     assert(flag == 0);
-    /* =============================== GENESIS BLOCK ============================================= */
-    /* =============================== BLOCK 218430 ============================================== */
-    // 72d4ef030000b7fba3287cb2be97273002a5b3ffd3c19f3d3e-00 00 00-00 00 00 00
-    /*__CPROVER_assume(
-       (unsigned char)(state[7] & 0xff) == 0x00 &&
-       (unsigned char)((state[7]>>8) & 0xff)  == 0x00 &&
-       (unsigned char)((state[7]>>16) & 0xff) == 0x00 &&
-       (unsigned char)((state[7]>>24) & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>8) & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>16) & 0xff) == 0x00);
-     //  (unsigned char)((state[6]>>24) & 0xff) == 0x00);
-
-    int flag = 0;
-    if((unsigned char)((state[6]>>24) & 0xff) > 0x5a) {
-       flag = 1;
-    }
-    assert(flag == 1);*/
-    /* =============================== BLOCK 218430 ============================================== */
-    /* =============================== BLOCK X      ============================================== */
-    /* Target here is hex(0x0b1eff * 2**(8*(0x17 - 3))) == 386604799 -> 0x170b1eff */
-    /*__CPROVER_assume(
-       (unsigned char)(state[7] & 0xff) == 0x00 &&
-       (unsigned char)((state[7]>>8) & 0xff)  == 0x00 &&
-       (unsigned char)((state[7]>>16) & 0xff) == 0x00 &&
-       (unsigned char)((state[7]>>24) & 0xff) == 0x00 &&
-       (unsigned char)(state[6] & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>8) & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>16) & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>24) & 0xff) == 0x00 &&
-       (unsigned char)(state[5] & 0xff) == 0x00);
-
-    int flag = 0;
-    if((unsigned char)((state[5]>>8) & 0xff) > 0x0b) {
-       flag = 1;
-    }
-    assert(flag == 1);*/
-    /* =============================== BLOCK X      ============================================== */
 #endif
 
 #ifndef CBMC
@@ -347,15 +315,14 @@ int verifyhash(unsigned int *block)
     printHashNormalWay(state);
 
     // Printing in before byte swap - bitcoin way.
-    printHashBitcoinWay(state);
+    printHashBitcoinWaysBeforeByteSwap(state);
 
     // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
     printHashBitcoinWay(state);
 #endif
+} // end verifyHash
 
-    return (0);
-}
-
+/* Heusser's function - TODO Check what it does*/
 void processblocks(char *filename)
 {
     FILE *f;
@@ -388,7 +355,8 @@ void processblocks(char *filename)
     fclose(f);
 }
 
-unsigned int genesis_input_block[20] = {
+/* ============================= INPUT BLOCKS ============================================= */
+unsigned int genesis_block[20] = {
     16777216,
     0,
     0,
@@ -411,58 +379,7 @@ unsigned int genesis_input_block[20] = {
     // 497822588}; // correct nonce
     497822588}; // randomly picked nonce which will be overwritten
 
-unsigned int input_block_example[20] = {
-    16777216,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1000599037,
-    2054886066,
-    2059873342,
-    1735823201,
-    2143820739,
-    2290766130,
-    983546026,
-    1260281418,
-    699096905,
-    4294901789,
-    // 497822588}; // correct nonce
-    250508269};
-
-// 1 element if 4 bytes, 1 hexadecimal character is 4 bits
 unsigned int block_780000[20] = {
-    0x201b2000, // version field - GOOD
-    0x00000000, // beginning of prev hash - GOOD
-    0x00000000,
-    0x00063a84,
-    0x0d1ae5a1,
-    0x090da46e,
-    0x1ae749bf,
-    0x668ba9f7,
-    0xb2a30efe, // end of prev hash - GOOD
-    0x3ff040ab, // start of merkle root - GOOD
-    0xd19b0675,
-    0xcb65c47b,
-    0x8069908f,
-    0x87a4d128,
-    0xd9e60a31,
-    0x79e9d294,
-    0xe87e94d6,  // end of merkle root - GOOD
-    0xbc1b0964,  // timestamp -
-    0x170689a3,  // bits - GOOD
-    0xc0c02e28}; // correct nonce - GOOD
-                 // 250508269}; // randomly picked nonce which will be overwritten
-
-// Hex representation of block 780000
-// 201b2000000000000000000000063a840d1ae5a1090da46e1ae749bf668ba9f7b2a30efe3ff040abd19b0675cb65c47b8069908f87a4d128d9e60a3179e9d294e87e94d6c74c9046170689a3c0c02e28
-// 201b2000000000000000000000063a840d1ae5a1090da46e1ae749bf668ba9f7b2a30efe3ff040abd19b0675cb65c47b8069908f87a4d128d9e60a3179e9d294e87e94d67cc40964170689a3c0c02e28
-
-unsigned int block_780000_from_api[20] = {
     0x00201b20,
     0xfe0ea3b2,
     0xf7a98b66,
@@ -483,90 +400,11 @@ unsigned int block_780000_from_api[20] = {
     0x7cc40964,
     0xa3890617,
     // 0x282ec0c0}; // correct nonce
-    0x22222222}; // random nonce which will be overwritten
-
-// representation of: helloworlddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
-unsigned int input_block_ex[20] = {0b01101000011001010110110001101100, 0b01101111011101110110111101110010, 0b01101100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100, 0b01100100011001000110010001100100};
-// c05d8c587992cc1e025bb37a6284a6f1e68fcd6420dd5c33a5d5c5023f49f73e
-
-unsigned int input_block_helloworld[16] = {
-    0b01101000011001010110110001101100,
-    0b01101111001000000111011101101111,
-    0b01110010011011000110010010000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000001011000};
-
-unsigned int input_block_helloworld_doublehash[16] = {
-    0b10111001010011010010011110111001, // Binary representation of: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9 + padding
-    0b10010011010011010011111000001000, // All chars should be separately encoded based on their ascii code's binary repr
-    0b10100101001011100101001011010111,
-    0b11011010011111011010101111111010,
-    0b11000100100001001110111111100011,
-    0b01111010010100111000000011101110,
-    0b10010000100010001111011110101100,
-    0b11100010111011111100110111101001,
-    0b10000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000000000000,
-    0b00000000000000000000000100000000};
-
-// 201b2000000000000000000000063a840d1ae5a1090da46e1ae749bf668ba9f7b2a30efe3ff040abd19b0675cb65c47b8069908f87a4d128d9e60a3179e9d294e87e94d6c74c9046170689a3c0c02e28
-
-// genesis block hash splitted
-// 01000000000000000000000000000000
-// 00000000000000000000000000000000
-// 000000003BA3EDFD7A7B12B27AC72C3E
-// 67768F617FC81BC3888A51323A9FB8AA
-// 4B1E5E4A29AB5F49FFFF001D1DAC2B7C
-
-// genesis block hash one line
-// 0100000000000000000000000000000000000000000000000000000000000000000000003BA3EDFD7A7B12B27AC72C3E67768F617FC81BC3888A51323A9FB8AA4B1E5E4A29AB5F49FFFF001D1DAC2B7C
-
-/*unsigned int input_block[20] = {
- 16777216,
-
- // prev block
- 1711699388,
- 2939744218,
- 3252212977,
- 2893103710,
- 2128873143,
- 1431457499,
- 3808690176,
- 0,
-
- // merkle
- 1803429671,
- 533048842,
- 3073754577,
- 1455291121,
- 3996402020,
- 4104720509,
- 1827684636,
- 4251965418,
-
- // time, bits, nonce
- 2004092497, 2980447514,// 1
- 4043570730
-}; */
+    0x282ec0c0}; // random nonce which will be overwritten
 
 int main(int argc, void *argv[])
 {
-    verifyhash(&genesis_input_block[0]);
+    verifyhash(&genesis_block[0]);
+    // verifyhash(&block_780000_from_api[0]);
     return 0;
 }
