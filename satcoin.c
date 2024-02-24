@@ -4,15 +4,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*Global variables and constants*/
 #define MAX_NONCE 4294967295
 
+// TODO - Check what are these values uses for.
 int bc = 0;
 unsigned int prevtarget = 0;
+
+const unsigned int pad0[12] = {
+    0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000280};
+
+const unsigned int pad1[8] = {0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000100};
+
+/*Outdated padding for the double hashing process.
+This is only useful if we consider that the double
+hashing occurs by the second SHA256 call will process
+the first hash as a string value, rather than a hexadecimal value.
+By string I mean inputs like this: 152fb5611b8273bd2c292adea87fdea9d4ee86fbc49db9291a3099ed349a2a62
+By hex, we can just copy the values from SHA256's state, so: 0x152fb561, then 0x1b8273bd ....
+*/
+// const unsigned int double_hash_pad[16] = {
+//     0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+//     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000200};
 
 /*Helper functions*/
 void printHashNormalWay(unsigned int *state)
 {
-    printf("NORMAL WAY HASH: \n");
+    printf("NORMAL WAY HASH: ");
     for (int n = 0; n < 8; n++)
     {
         if (n == 7)
@@ -25,6 +44,56 @@ void printHashNormalWay(unsigned int *state)
         }
     }
     printf("\n");
+}
+
+void printHashBitcoinWaysBeforeByteSwap(unsigned int *state)
+{
+    printf("BITCOIN WAY HASH BEFORE BYTE SWAP: ");
+    for (int i = 0; i < 8; i++)
+    {
+        printf("%02x-", state[i] & 0xff);
+        printf("%02x-", (state[i] >> 8) & 0xff);
+        printf("%02x-", (state[i] >> 16) & 0xff);
+        if (i == 7)
+        {
+            printf("%02x", (state[i] >> 24) & 0xff);
+        }
+        else
+        {
+            printf("%02x-", (state[i] >> 24) & 0xff);
+        }
+    }
+    printf("\n");
+}
+
+void printHashBitcoinWay(unsigned int *state)
+{
+    printf("BITCOIN WAY HASH: ");
+    for (int i = 7; i >= 0; i--)
+    {
+        printf("%02x-", state[i] & 0xff);
+        printf("%02x-", (state[i] >> 8) & 0xff);
+        printf("%02x-", (state[i] >> 16) & 0xff);
+        if (i == 0)
+        {
+            printf("%02x", (state[i] >> 24) & 0xff);
+        }
+        else
+        {
+            printf("%02x-", (state[i] >> 24) & 0xff);
+        }
+    }
+    printf("\n");
+}
+
+char *hashToString(unsigned int *state)
+{
+    char *result = malloc(65);
+    sprintf(result, "%08x%08x%08x%08x%08x%08x%08x%08x",
+            state[0], state[1], state[2], state[3],
+            state[4], state[5], state[6], state[7]);
+    printf("Hash as string: %s\n", result);
+    return result;
 }
 
 /*SHA256 constant values for hashing*/
@@ -40,19 +109,20 @@ unsigned int sha_k[64] = {
     0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A, 0x5B9CCA4F, 0x682E6FF3,
     0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208, 0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2};
 
-// set state to what it should be before processing the first chunk of a message
+/*SHA256 set initial state with the constant values*/
 void sha_initstate(unsigned int *state)
 {
-    int n;
-
-    for (n = 0; n < 8; n++)
+    for (int i = 0; i < 8; i++)
     {
-        *state = sha_h[n];
+        *state = sha_h[i];
         state++;
     }
 }
 
-// process one chunk of a message, updating state (which after the last chunk is the hash)
+/*Processing one chunk of the message, which updates the state*/
+/*Bitcoin uses double hashing*/
+/*One chunk is an array with 16 elements. Each element is 4 bytes, overall it's 64 bytes / 512 bits*/
+/*When we process the last chunk, then the last 8 bytes / 64 bits of the chunk is not a part of the message itself, it's the message's length encoded.*/
 void sha_processchunk(unsigned int *state, unsigned int *chunk)
 {
     unsigned int w[64], s0, s1;
@@ -102,7 +172,7 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
         a = t1 + t2;
     }
 
-    // Add this chunk's hash to result so far:
+    // Add this chunk's hash to the result so far:
     *(state + 0) += a;
     *(state + 1) += b;
     *(state + 2) += c;
@@ -112,30 +182,19 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
     *(state + 6) += g;
     *(state + 7) += h;
 }
-// SHA STUFF END -------------------------------------------------------------------
 
-unsigned int pad0[12] = {
-    0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000280};
-
-unsigned int double_hash_pad[16] = {
-    0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000200};
-
-unsigned int pad1[8] = {0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000100};
-
+/*The main method which processes our input.
+It Includes double hashing, chunk processing, chunk creating.*/
 int verifyhash(unsigned int *block)
 {
     unsigned int state[8];
     unsigned int chunk[16];
     int n;
-    unsigned int *u_nonce = ((unsigned int *)block + 16 + 3);
-    // unsigned int *u_timestamp = ((unsigned int *)block+16+2);
+    unsigned int *u_nonce = ((unsigned int *)block + 16 + 3); // Through this pointer, CBMC will modify the input block's last element, which is the nonce.
 
-    // Set initial state of sha256.
     sha_initstate((unsigned int *)&state);
 
-    // The block consists of 20 32bit variables, and the first 16 of these make up the first chunk.
+    // The block consists of 20  4 byte / 32 bit variables, and the first 16 of these make up the first chunk.
     for (n = 0; n < 16; n++)
     {
         chunk[n] = *(block + n);
@@ -145,7 +204,8 @@ int verifyhash(unsigned int *block)
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
 #ifdef CBMC
-    // set the nonce to a non-deterministic value
+    // Set the nonce to a non-deterministic value by CBMC's nondet_uint() call
+    // We set it after the first chunk procession, because it will affect only the second chunk
     *u_nonce = nondet_uint();
 
 #ifdef SATCNF
@@ -162,21 +222,24 @@ int verifyhash(unsigned int *block)
 #else
 
     /* =============================== GENESIS BLOCK ============================================= */
-    //__CPROVER_assume(*u_nonce > 0 && *u_nonce < 10);
-    __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
-                                                                    /* =============================== GENESIS BLOCK ============================================= */
-                                                                    /* =============================== BLOCK 218430 ============================================== */
-                                                                    //__CPROVER_assume(*u_nonce > 4043570728 && *u_nonce < 4043570731);
-                                                                    /* =============================== BLOCK 218430 ============================================== */
+    /* =============================== CORRECT NONCE: 497822588 ================================== */
+    // __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
+    // __CPROVER_assume(*u_nonce > 497822580 && *u_nonce < 497822590); // 10 nonces
+    // __CPROVER_assume(*u_nonce > 497822580 && *u_nonce < 497822680); // 100 nonces
+    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
+    __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
+    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
+
+    /* =============================== BLOCK 218430 ============================================== */
+    //__CPROVER_assume(*u_nonce > 4043570728 && *u_nonce < 4043570731);
 
 #endif // else UNSATCNF
 #endif // else SATCNF
-#endif
+#endif // end CBMC
 
-    // The last 4 int's go together with some padding to make the second and final chunk.
+    // Here we process the ramining 4 values of the input block.
+    // We use the correct padding for it.
+    // This is the 2nd and final chunk, which when processed, will give us the first SHA256 hash.
     for (n = 0; n < 4; n++)
     {
         chunk[n] = *(block + 16 + n);
@@ -184,82 +247,62 @@ int verifyhash(unsigned int *block)
     for (n = 4; n < 16; n++)
         chunk[n] = pad0[n - 4];
 
-    // And is processed, giving the hash.
+    // Here we process the 2nd and final chunk which gives us the first SHA256 hash.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
-    // char *result = malloc(65);
-    // sprintf(result, "%08x%08x%08x%08x%08x%08x%08x%08x",
-    //         state[0], state[1], state[2], state[3],
-    //         state[4], state[5], state[6], state[7]);
-    // printf("first hash: %s\n", result);
-
-    // char temp[5];
-    // int tempCounter = 0;
-    // int chunkCounter = 0;
-    // // Fill chunk correctly with the previous hash, to make the second hash.
-    // for (int i = 0; i < 64; i++)
-    // {
-    //     temp[tempCounter] = result[i];
-    //     if (tempCounter == 3)
-    //     {
-    //         char *endptr;
-    //         long decimalNumber = strtol(temp, &endptr, 16);
-    //         chunk[chunkCounter++] = decimalNumber;
-    //         tempCounter = 0;
-    //     }
-    //     else
-    //     {
-    //         tempCounter++;
-    //     }
-    // }
-
-    // This hash will be hashed again, so is copied into the chunk buffer, and padding is added.
+    /* ================= 2ND HASH / DOUBLE HASHING ================================= */
+    // The hash will be hashed again, this will make the double hashing.
+    // We copy the hexadecimal values from the state, to the chunk, and add the correct padding to it.
+    // Then we will process this chunk, state's values will get process ad hexadecimal values, rather than a string value.
     for (n = 0; n < 8; n++)
         chunk[n] = state[n];
     for (n = 8; n < 16; n++)
         chunk[n] = pad1[n - 8];
 
-    // Second hash
-    // State is initialized.
+    // This is a whole new hash, so we need to reinitialize the state.
     sha_initstate((unsigned int *)&state);
 
-    // Chunk is processed.
+    // We process the the chunk, which will give us the final hash.
+    // After this, we will have the correct SHA256 Hash for our input_block, which is Double hashed.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
-    // for (int i = 0; i < 16; i++)
-    // {
-    //     chunk[i] = double_hash_pad[i];
-    // }
-
-    // sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
-
+/* ==================== ASSERTION and ASSUMPTIONS ================================= */
+/* This is the part Where we assume the number of leading zeros, and make an assertion, which will fail, so CBMC detects the correct nonce */
 #ifdef CBMC
     /* =============================== GENESIS BLOCK ============================================= */
     // CBMCs view on state: 0a8ce26f72b3f1b646a2a6c14ff763ae65831e939c085ae1 0019d668 00 00 00 00
     // this is before byteswap.
     //
     // encode structure of hash below target with leading zeros
-    //
-    __CPROVER_assume(
-        (unsigned char)(state[7] & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
+    // assumption for block 780000
+    // __CPROVER_assume(
+    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
+
+    // assumption for block genesis
+    // __CPROVER_assume(
+    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00);
+    // (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    // (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    // (unsigned char)((state[6] >> 0) & 0xff) == 0x00);
 
     int flag = 0;
     // if((unsigned char)((state[6]) & 0xff) != 0x00) {
-    if ((unsigned char)((state[5] >> 8) & 0xff) != 0x00)
+    if ((unsigned char)((state[5] >> 0) & 0xff) == 0x00)
     {
         flag = 1;
     }
     // counterexample to this will contain an additional leading 0 in the hash which makes it below target
-    assert(flag == 1);
+    assert(flag == 0);
     /* =============================== GENESIS BLOCK ============================================= */
     /* =============================== BLOCK 218430 ============================================== */
     // 72d4ef030000b7fba3287cb2be97273002a5b3ffd3c19f3d3e-00 00 00-00 00 00 00
@@ -300,16 +343,14 @@ int verifyhash(unsigned int *block)
 #endif
 
 #ifndef CBMC
-    // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
+    // Printing hash in normal, convenient way.
     printHashNormalWay(state);
-    for (n = 7; n >= 0; n--)
-    {
-        printf("%02x-", state[n] & 0xff);
-        printf("%02x-", (state[n] >> 8) & 0xff);
-        printf("%02x-", (state[n] >> 16) & 0xff);
-        printf("%02x-", (state[n] >> 24) & 0xff);
-    }
-    printf("\n");
+
+    // Printing in before byte swap - bitcoin way.
+    printHashBitcoinWay(state);
+
+    // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
+    printHashBitcoinWay(state);
 #endif
 
     return (0);
@@ -368,7 +409,7 @@ unsigned int genesis_input_block[20] = {
     699096905,
     4294901789,
     // 497822588}; // correct nonce
-250508269}; // randomly picked nonce which will be overwritten
+    497822588}; // randomly picked nonce which will be overwritten
 
 unsigned int input_block_example[20] = {
     16777216,
@@ -526,6 +567,6 @@ unsigned int input_block_helloworld_doublehash[16] = {
 
 int main(int argc, void *argv[])
 {
-    verifyhash(&block_780000_from_api[0]);
+    verifyhash(&genesis_input_block[0]);
     return 0;
 }
