@@ -143,8 +143,8 @@ int verifyhash(unsigned int *block)
 
     /* =============================== GENESIS BLOCK ============================================= */
     //__CPROVER_assume(*u_nonce > 0 && *u_nonce < 10);
-    __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
+    // __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
+                                                                    __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
                                                                     //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
                                                                     //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
                                                                     /* =============================== GENESIS BLOCK ============================================= */
