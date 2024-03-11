@@ -8,8 +8,8 @@
 #define MAX_NONCE 4294967295
 
 // TODO - Check what are these values uses for.
-int bc = 0;
-unsigned int prevtarget = 0;
+// int bc = 0;
+// unsigned int prevtarget = 0;
 
 const unsigned int pad0[12] = {
     0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -84,6 +84,30 @@ void printHashBitcoinWay(unsigned int *state)
         }
     }
     printf("\n");
+
+    // unsigned char c1 = (unsigned char)((state[5] >> 0) & 0xff);
+    // unsigned char c2 = (unsigned char)((state[5] >> 8) & 0xff);
+    // unsigned char c3 = (unsigned char)((state[5] >> 16) & 0xff);
+    // unsigned char c4 = (unsigned char)((state[5] >> 24) & 0xff);
+    // printf("c1: %d \n", c1);
+    // printf("c2: %d \n", c2);
+    // printf("c3: %d \n", c3);
+    // printf("c4: %d \n", c4);
+    // printf("c1hex: %02x \n", c1);
+    // printf("c2hex: %02x \n", c2);
+    // unsigned char c21 = c2 >> 0 & 0xf;
+    // unsigned char c22 = c2 >> 4 & 0xf; // This way we can assume 1 hex digit at a time, instead of 2.
+    // printf("c21: %02x \n", c21);
+    // printf("c22: %02x \n", c22);
+    // unsigned char f0 = 240;
+    // unsigned char f = f0 >> 4 & 0xf;
+    // unsigned char chex = ((unsigned char)((state[5] >> 8) & 0xff)) >> 4 & 0xf;
+    // printf("chex: %02x \n", chex);
+    // printf("f: %02x \n", f);
+    // printf("comp: %d \n", c2 == 0);
+    // printf("c3hex: %02x \n", c3);
+    // printf("c4hex: %02x \n", c4);
+    // printf("zeroHex: %d \n", (((unsigned char)((state[5] >> 0) & 0xff)) >> 4 & 0xf) == 0x0);
 }
 
 char *hashToString(unsigned int *state)
@@ -235,9 +259,23 @@ void verifyhash(unsigned int *block)
     // __CPROVER_assume(*u_nonce > 4043570729 && *u_nonce < 4043570731); // 1 nonces only
     // __CPROVER_assume(*u_nonce > 4043570725 && *u_nonce < 4043570735); // 10 nonces
     // __CPROVER_assume(*u_nonce > 4043570650 && *u_nonce < 4043570750); // 100 nonces
-    __CPROVER_assume(*u_nonce > 4043570000 && *u_nonce < 4043571000); // 1k
+    // __CPROVER_assume(*u_nonce > 4043570000 && *u_nonce < 4043571000); // 1k
     // __CPROVER_assume(*u_nonce > 4043570000 && *u_nonce < 4043580000); // 10k
     // __CPROVER_assume(*u_nonce > 4043500000 && *u_nonce < 4043600000); // 100k
+
+    /* =============================== BLOCK 467000 ============================================== */
+    /* =============================== CORRECT NONCE: 4286565448 ================================== */
+    // __CPROVER_assume(*u_nonce > 4286565447 && *u_nonce < 4286565449); // 1 nonces only
+    // __CPROVER_assume(*u_nonce > 4286565440 && *u_nonce < 4286565450); // 10 nonces
+    // __CPROVER_assume(*u_nonce > 4286565400 && *u_nonce < 4286565500); // 100 nonces
+    __CPROVER_assume(*u_nonce > 4286565000 && *u_nonce < 4286566000); // 1k
+
+    /* =============================== BLOCK 654000 ============================================== */
+    /* =============================== CORRECT NONCE: 2806799514 ================================== */
+    // __CPROVER_assume(*u_nonce > 2806799513 && *u_nonce < 2806799515); // 1 nonces only
+    // __CPROVER_assume(*u_nonce > 2806799510 && *u_nonce < 2806799520); // 10 nonces
+    // __CPROVER_assume(*u_nonce > 2806799500 && *u_nonce < 2806799600); // 100 nonces
+    // __CPROVER_assume(*u_nonce > 2806799000 && *u_nonce < 2806800000); // 1k
 
     /* =============================== BLOCK 780000 ============================================= */
     /* =============================== CORRECT NONCE: 674152640 ================================== */
@@ -288,12 +326,21 @@ void verifyhash(unsigned int *block)
     // __CPROVER_assume(
     //     (unsigned char)(state[7] & 0xff) == 0x00 &&
     //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00);
-    // (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    // (unsigned char)((state[6] >> 0) & 0xff) == 0x00);
+    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00);
 
     /* =============================== BLOCK 218430 ============================================== */
-    // 72d4ef030000b7fba3287cb2be97273002a5b3ffd3c19f3d3e-00 00 00-00 00 00 00
+    // __CPROVER_assume(
+    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00);
+
+    /* =============================== BLOCK 467000 ============================================== */
     __CPROVER_assume(
         (unsigned char)(state[7] & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
@@ -301,7 +348,22 @@ void verifyhash(unsigned int *block)
         (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
         (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
         (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 16) & 0xff) == 0x00);
+        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
+        (((unsigned char)((state[5] >> 0) & 0xff)) >> 4 & 0xf) == 0x0);
+
+    /* =============================== BLOCK 654000 ============================================== */
+    // __CPROVER_assume(
+    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
+    //     (((unsigned char)((state[5] >> 8) & 0xff)) >> 4 & 0xf) == 0x0);
 
     /* =============================== BLOCK 780000 ============================================= */
     // __CPROVER_assume(
@@ -318,7 +380,7 @@ void verifyhash(unsigned int *block)
 
     /* ============================= ASSERTION - Modify as needed ==================================================== */
     int flag = 0;
-    if ((unsigned char)((state[6] >> 16) & 0xff) == 0x00)
+    if ((((unsigned char)((state[5] >> 0) & 0xff)) >> 4 & 0xf) == 0x0)
     {
         flag = 1;
     }
@@ -338,37 +400,37 @@ void verifyhash(unsigned int *block)
 } // end verifyHash
 
 /* Heusser's function - TODO Check what it does*/
-void processblocks(char *filename)
-{
-    FILE *f;
-    char buf[256];
-    unsigned int *bp, *bsize, *block;
-    unsigned int n, t;
+// void processblocks(char *filename)
+// {
+//     FILE *f;
+//     char buf[256];
+//     unsigned int *bp, *bsize, *block;
+//     unsigned int n, t;
 
-    bp = (unsigned int *)&buf;
-    bsize = bp + 1;
-    block = bp + 2;
+//     bp = (unsigned int *)&buf;
+//     bsize = bp + 1;
+//     block = bp + 2;
 
-    f = fopen(filename, "rb");
+//     f = fopen(filename, "rb");
 
-    while (fread(buf, 1, 88, f) == 88)
-    {
-        // Swap endianess.. I think this is already done in the RPC getwork(), but that must be triple checked.
-        for (n = 0; n < 20; n++)
-        {
-            t = *(block + n);
-            t = (t >> 24) | (t << 24) | ((t & 0x00ff0000) >> 8) | ((t & 0x0000ff00) << 8);
-            *(block + n) = t;
-        }
+//     while (fread(buf, 1, 88, f) == 88)
+//     {
+//         // Swap endianess.. I think this is already done in the RPC getwork(), but that must be triple checked.
+//         for (n = 0; n < 20; n++)
+//         {
+//             t = *(block + n);
+//             t = (t >> 24) | (t << 24) | ((t & 0x00ff0000) >> 8) | ((t & 0x0000ff00) << 8);
+//             *(block + n) = t;
+//         }
 
-        verifyhash(block);
+//         verifyhash(block);
 
-        bc++;
-        fseek(f, *bsize - 80, SEEK_CUR);
-    }
+//         bc++;
+//         fseek(f, *bsize - 80, SEEK_CUR);
+//     }
 
-    fclose(f);
-}
+//     fclose(f);
+// }
 
 /* ============================= INPUT BLOCKS ============================================= */
 unsigned int genesis_block[20] = {
@@ -392,7 +454,7 @@ unsigned int genesis_block[20] = {
     699096905,
     4294901789,
     // 497822588}; // correct nonce
-    497822588}; // randomly picked nonce which will be overwritten
+    22223344}; // randomly picked nonce which will be overwritten
 
 unsigned int block_218430[20] = {
     0x01000000,
@@ -415,6 +477,52 @@ unsigned int block_218430[20] = {
     0x77740651,
     0xb1a6051a,
     // 0xf103fe2a}; // correct nonce
+    0x22223333}; // randomly picked nonce which will be overwritten
+
+unsigned int block_467000[20] = {
+    0x04000000,
+    0x59136a33,
+    0x88d4add3,
+    0x9472ab40,
+    0x90a03ef2,
+    0x372933ca,
+    0x3209f000,
+    0x00000000,
+    0x00000000,
+    0x86111669,
+    0x262e5ace,
+    0xa6b2db34,
+    0x0b5da146,
+    0x8aa1d3cf,
+    0x89b816ce,
+    0x809ff141,
+    0x978d1974,
+    0xa2d61d59,
+    0xa7f60118,
+    // 0xff7fcc48}; // correct nonce
+    0x22223333}; // randomly picked nonce which will be overwritten
+
+unsigned int block_654000[20] = {
+    0x00000020,
+    0xe2c646aa,
+    0xdddee991,
+    0x17dece9f,
+    0x4aa6b55a,
+    0xe9b08338,
+    0x2c000200,
+    0x00000000,
+    0x00000000,
+    0x59a77dd7,
+    0xbe7408c6,
+    0x7f0ef976,
+    0xf75dcb27,
+    0xf6f8ab78,
+    0x802cf7df,
+    0x25c36dd4,
+    0x15df0d3c,
+    0xcd43935f,
+    0x4e130e17,
+    // 0xa74c5c9a}; // correct nonce
     0x22223333}; // randomly picked nonce which will be overwritten
 
 unsigned int block_780000[20] = {
@@ -442,6 +550,6 @@ unsigned int block_780000[20] = {
 
 int main(int argc, void *argv[])
 {
-    verifyhash(&block_218430[0]);
+    verifyhash(&block_467000[0]);
     return 0;
 }
