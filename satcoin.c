@@ -268,7 +268,7 @@ void verifyhash(unsigned int *block)
     // __CPROVER_assume(*u_nonce > 4286565447 && *u_nonce < 4286565449); // 1 nonces only
     // __CPROVER_assume(*u_nonce > 4286565440 && *u_nonce < 4286565450); // 10 nonces
     // __CPROVER_assume(*u_nonce > 4286565400 && *u_nonce < 4286565500); // 100 nonces
-    __CPROVER_assume(*u_nonce > 4286565000 && *u_nonce < 4286566000); // 1k
+    // __CPROVER_assume(*u_nonce > 4286565000 && *u_nonce < 4286566000); // 1k
 
     /* =============================== BLOCK 654000 ============================================== */
     /* =============================== CORRECT NONCE: 2806799514 ================================== */
@@ -285,6 +285,13 @@ void verifyhash(unsigned int *block)
     // __CPROVER_assume(*u_nonce > 674152500 && *u_nonce < 674153500); // 1k nonces
     // __CPROVER_assume(*u_nonce > 674150000 && *u_nonce < 674160000); // 10k nonces
     // __CPROVER_assume(*u_nonce > 674100000 && *u_nonce < 674200000); // 100k nonces
+
+    /* =============================== BLOCK 780900 ============================================= */
+    /* =============================== CORRECT NONCE: 1261881605 ================================== */
+    // __CPROVER_assume(*u_nonce > 1261881604 && *u_nonce < 1261881606); // 1 nonces only
+    // __CPROVER_assume(*u_nonce > 1261881600 && *u_nonce < 1261881610); // 10 nonces
+    // __CPROVER_assume(*u_nonce > 1261881600 && *u_nonce < 1261881700); // 100 nonces
+    __CPROVER_assume(*u_nonce > 1261881000 && *u_nonce < 1261882000); // 1k nonces
 
 #endif // else UNSATCNF
 #endif // else SATCNF
@@ -378,9 +385,22 @@ void verifyhash(unsigned int *block)
     //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
     //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
 
+    /* =============================== BLOCK 780900 ============================================= */
+    __CPROVER_assume(
+        (unsigned char)(state[7] & 0xff) == 0x00 &&
+        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+        (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+        (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
+        (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
+        (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
+
     /* ============================= ASSERTION - Modify as needed ==================================================== */
     int flag = 0;
-    if ((((unsigned char)((state[5] >> 0) & 0xff)) >> 4 & 0xf) == 0x0)
+    if ((unsigned char)((state[5] >> 8) & 0xff) == 0x00)
     {
         flag = 1;
     }
@@ -548,8 +568,31 @@ unsigned int block_780000[20] = {
     // 0x282ec0c0}; // correct nonce
     0x22223333}; // random nonce which will be overwritten
 
+unsigned int block_780900[20] = {
+    0x00a05521,
+    0x621058fe,
+    0xc4bf8557,
+    0x617b517f,
+    0x26559829,
+    0x891e533c,
+    0x95590100,
+    0x00000000,
+    0x00000000,
+    0x56ebb725,
+    0x35fc21f5,
+    0x59cf2dc4,
+    0x9470a3cb,
+    0xb7f4c3a7,
+    0x9572fd38,
+    0x24b2f6ca,
+    0xe50040fa,
+    0xda931164,
+    0x81760617,
+    // 0x4b36c905}; // correct nonce
+    0x22223333}; // random nonce which will be overwritten
+
 int main(int argc, void *argv[])
 {
-    verifyhash(&block_467000[0]);
+    verifyhash(&block_780900[0]);
     return 0;
 }
