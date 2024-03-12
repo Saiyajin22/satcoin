@@ -538,28 +538,28 @@ unsigned int genesis_block[20] = {
     // 497822588}; // correct nonce
     22223344}; // randomly picked nonce which will be overwritten
 
-unsigned int block_218430[20] = {
-    0x01000000,
-    0x660675bc,
-    0xaf38efda,
-    0xc1d8d4f1,
-    0xac71425e,
-    0x7ee406b7,
-    0x55524edb,
-    0xe3040000,
-    0x00000000,
-    0x6b7e2727,
-    0x1fc5ae0a,
-    0xb735c5d1,
-    0x56bdfaf1,
-    0xee344164,
-    0xf4a9107d,
-    0x6cf0411c,
-    0xfd6fd7ea,
-    0x77740651,
-    0xb1a6051a,
-    // 0xf103fe2a}; // correct nonce
-    0x22223333}; // randomly picked nonce which will be overwritten
+// unsigned int block_218430[20] = {
+//     0x01000000,
+//     0x660675bc,
+//     0xaf38efda,
+//     0xc1d8d4f1,
+//     0xac71425e,
+//     0x7ee406b7,
+//     0x55524edb,
+//     0xe3040000,
+//     0x00000000,
+//     0x6b7e2727,
+//     0x1fc5ae0a,
+//     0xb735c5d1,
+//     0x56bdfaf1,
+//     0xee344164,
+//     0xf4a9107d,
+//     0x6cf0411c,
+//     0xfd6fd7ea,
+//     0x77740651,
+//     0xb1a6051a,
+//     // 0xf103fe2a}; // correct nonce
+//     0x22223333}; // randomly picked nonce which will be overwritten
 
 unsigned int block_467000[20] = {
     0x04000000,
