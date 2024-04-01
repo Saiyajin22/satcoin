@@ -464,6 +464,14 @@ void verifyhash(unsigned int *block)
     int flag = 0;
     if ((unsigned char)(state[7] & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 8) & 0xff) == 0x00)
+        // (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+        // (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+        // (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+        // (unsigned char)((state[6] >> 8) & 0xff) == 0x00)
+        // (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+        // (unsigned char)((state[6] >> 24) & 0xff) == 0x00)
+        // (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
+        // (unsigned char)((state[5] >> 8) & 0xff) == 0x00)
     {
         flag = 1;
     }
@@ -627,7 +635,7 @@ unsigned int block_780000[20] = {
     0x75069bd1,
     0xab40f03f,
     0x7cc40964,
-    0xa3890617,
+    0xa3890617, // modified, original is: 0xa3890617
     // 0x282ec0c0}; // correct nonce
     0x22223333}; // random nonce which will be overwritten
 
