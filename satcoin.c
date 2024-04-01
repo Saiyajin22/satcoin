@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 /*Global variables and constants*/
 #define MAX_NONCE 4294967295
@@ -209,7 +210,7 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
 
 /*The main method which processes our input.
 It Includes double hashing, chunk processing, chunk creating.*/
-unsigned int verifyhash(unsigned int *block)
+long verifyhash(unsigned int *block)
 {
     unsigned int state[8];
     unsigned int chunk[16];
@@ -394,17 +395,17 @@ unsigned int verifyhash(unsigned int *block)
     //     (((unsigned char)((state[5] >> 8) & 0xff)) >> 4 & 0xf) == 0x0);
 
     /* =============================== BLOCK 780000 ============================================= */
-    __CPROVER_assume(
-        (unsigned char)(state[7] & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
+    // __CPROVER_assume(
+    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
 
     /* =============================== BLOCK 780900 ============================================= */
     // __CPROVER_assume(
@@ -502,7 +503,7 @@ unsigned int verifyhash(unsigned int *block)
         return *u_nonce;
     }
 
-    return 0;
+    return -1;
 
 #endif
 } // end verifyHash
@@ -751,13 +752,20 @@ unsigned int block_756951[24] = {
 
 int main(int argc, void *argv[])
 {
-    for (unsigned int i = 0; i <= MAX_NONCE; i++)
+    clock_t start, end, elapsed;
+    start = clock();
+    for (long i = 671152640; i <= MAX_NONCE; i++)
     {
         block_780000[19] = i;
-        unsigned int nonce = verifyhash(block_780000[0]);
-        if(nonce != 0) {
+        unsigned int validNonce = verifyhash(&block_780000[0]);
+        if (validNonce != -1)
+        {
             break;
         }
     }
+    end = clock();
+    elapsed = end - start;
+    double time_taken = ((double)elapsed)/CLOCKS_PER_SEC;
+    printf("Found a valid hash in %f seconds. \n", time_taken);
     return 0;
 }
