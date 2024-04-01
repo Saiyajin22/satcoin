@@ -231,7 +231,7 @@ long verifyhash(unsigned int *block)
 #ifdef CBMC
     // Set the nonce to a non-deterministic value by CBMC's nondet_uint() call
     // We set it after the first chunk procession, because it will affect only the second chunk
-    // *u_nonce = nondet_uint();
+    *u_nonce = nondet_uint();
 
 #ifdef SATCNF
     // make sure the valid nonce is in the range
@@ -484,12 +484,7 @@ long verifyhash(unsigned int *block)
         (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 8) & 0xff) == 0x00)
+        (unsigned char)((state[6] >> 0) & 0xff) == 0x00)
     {
         // Printing hash in normal, convenient way.
         printHashNormalWay(state);
@@ -754,10 +749,10 @@ int main(int argc, void *argv[])
 {
     clock_t start, end, elapsed;
     start = clock();
-    for (long i = 671152640; i <= MAX_NONCE; i++)
+    for (long i = 495822588; i <= MAX_NONCE; i++)
     {
-        block_780000[19] = i;
-        unsigned int validNonce = verifyhash(&block_780000[0]);
+        genesis_block[19] = i;
+        unsigned int validNonce = verifyhash(&genesis_block[0]);
         if (validNonce != -1)
         {
             break;
@@ -765,7 +760,7 @@ int main(int argc, void *argv[])
     }
     end = clock();
     elapsed = end - start;
-    double time_taken = ((double)elapsed)/CLOCKS_PER_SEC;
+    double time_taken = ((double)elapsed) / CLOCKS_PER_SEC;
     printf("Found a valid hash in %f seconds. \n", time_taken);
     return 0;
 }
