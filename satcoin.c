@@ -740,7 +740,7 @@ unsigned int block_756951[20] = {
 
 int main(int argc, void *argv[])
 {
-    for (unsigned int i = 674152630; i < 674152645; i++)
+    for (unsigned int i = 674152541; i < 674152645; i++)
     {
         verifyhash(&block_780000[0], i);
     }
