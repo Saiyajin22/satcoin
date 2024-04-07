@@ -5,12 +5,15 @@ int main() {
     int y = 25;
 
     for (int i = 0; i < 10; i++) {
+        y+=i;
+
         #ifdef CBMC
             y = nondet_uint();
         #endif
-        
-        __CPROVER_assume(y > 30);
-        assert(y > 3000);
+
+        if(y > 30) {
+            assert(0);
+        }
     }
 
     return 0;
