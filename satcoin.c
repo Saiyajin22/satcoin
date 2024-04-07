@@ -209,12 +209,15 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
 
 /*The main method which processes our input.
 It Includes double hashing, chunk processing, chunk creating.*/
-void verifyhash(unsigned int *block)
+void verifyhash(unsigned int *block, unsigned int nonce)
 {
     unsigned int state[8];
     unsigned int chunk[16];
     int n;
     unsigned int *u_nonce = ((unsigned int *)block + 16 + 3); // Through this pointer, CBMC will modify the input block's last element, which is the nonce.
+
+    // assign nonce incrementally from parameter
+    *u_nonce = nonce;
 
     sha_initstate((unsigned int *)&state);
 
@@ -230,7 +233,8 @@ void verifyhash(unsigned int *block)
 #ifdef CBMC
     // Set the nonce to a non-deterministic value by CBMC's nondet_uint() call
     // We set it after the first chunk procession, because it will affect only the second chunk
-    *u_nonce = nondet_uint();
+    // *u_nonce = nondet_uint();
+    // *u_nonce = nonce;
 
 #ifdef SATCNF
     // make sure the valid nonce is in the range
@@ -284,7 +288,7 @@ void verifyhash(unsigned int *block)
     // __CPROVER_assume(*u_nonce > 674152639 && *u_nonce < 674152642); // 2 nonces
     // __CPROVER_assume(*u_nonce > 674152635 && *u_nonce < 674152645); // 10 nonces
     // __CPROVER_assume(*u_nonce > 674152630 && *u_nonce < 674152730); // 100 nonces
-    __CPROVER_assume(*u_nonce > 674152500 && *u_nonce < 674153500); // 1k nonces
+    // __CPROVER_assume(*u_nonce > 674152500 && *u_nonce < 674153500); // 1k nonces
     // __CPROVER_assume(*u_nonce > 674150000 && *u_nonce < 674160000); // 10k nonces
     // __CPROVER_assume(*u_nonce > 674100000 && *u_nonce < 674200000); // 100k nonces
 
@@ -396,17 +400,17 @@ void verifyhash(unsigned int *block)
     //     (((unsigned char)((state[5] >> 8) & 0xff)) >> 4 & 0xf) == 0x0);
 
     /* =============================== BLOCK 780000 ============================================= */
-    __CPROVER_assume(
-        (unsigned char)(state[7] & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
+    // __CPROVER_assume(
+    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
+    //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
 
     /* =============================== BLOCK 780900 ============================================= */
     // __CPROVER_assume(
@@ -736,6 +740,10 @@ unsigned int block_756951[20] = {
 
 int main(int argc, void *argv[])
 {
-    verifyhash(&block_780000[0]);
+    for (unsigned int i = 674152630; i < 674152645; i++)
+    {
+        verifyhash(&block_780000[0], i);
+    }
+    
     return 0;
 }
