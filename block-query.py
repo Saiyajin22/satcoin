@@ -3,10 +3,19 @@ import time
 
 url = "https://api.blockchair.com/bitcoin/raw/block/{}"
 
+# user info
+print("Welcome to block query")
+blocks_file_name = input("----- Please enter the name for the output file, which should contain your blocks (!without file extension) -----\n")
+print()
+start_block_height = input("----- Enter the START of the block height you'd like to query -----\n")
+print()
+end_block_height = input("----- Enter the END of the block height you'd like to query -----\n")
+
 # Read the blocks and store them
-with open('blks.txt', "w") as file:
+print("Querying blocks started")
+with open(blocks_file_name + ".txt", "w") as file:
     file.writelines("")
-    for i in range(780000, 780100):
+    for i in range(int(start_block_height), int(end_block_height)):
         response = requests.get(url.format(str(i)))
         if response.status_code == 200:
             json_response = response.json()
@@ -34,3 +43,4 @@ with open('blks.txt', "w") as file:
         else:
             print("Failed to retrieve block data at height " + str(i) + ": ", response.json())
         time.sleep(1)
+print("Querying blocks ended")
