@@ -1,12 +1,15 @@
 import subprocess
 import os
 
-blocks_file = "blks.txt"
-blocks_lines = []
-satcoin_c = "scoin.c"
+print("Welcome to create cnf script")
+blocks_file = input("Please enter the name of the file which contains your blocks (!with .txt extension)\n")
+satcoin_c = input("Please enter the name of C implementation which will be parsed (!with .c extension)\n")
+
 satcoin_lines = []
+blocks_lines = []
 directory_name = "TEST_CNF_FILES"
-generate_cnf_command = "cbmc scoin.c -DCBMC --dimacs --outfile {}"
+generate_cnf_command = "cbmc " + satcoin_c + " -DCBMC --dimacs --outfile {}"
+
 # Lines to replace (starting from 0-based index)
 start_line = 185  # Line 186 in the file
 end_line = 204  # Line 205 in the file
