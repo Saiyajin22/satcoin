@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash
 # Norbert Manthey, 2018
 #
 # Create a simple CNF from the satcoin.c file, with SAT/UNSAT and a range of nonces to consider
@@ -47,3 +47,5 @@ cat "$PLAINOUTPUT" | grep -v "^c" | sed -n  '/p cnf /,$p' &>> "$FORMULA"
 
 # move formula
 mv "$FORMULA" "$OUTPUTFILE"
+
+echo "anyad cigany"
