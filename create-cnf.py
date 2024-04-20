@@ -1,16 +1,16 @@
 import subprocess
 import os
 
-blocks_file = "BLOCKS.txt"
+blocks_file = "blks.txt"
 blocks_lines = []
 satcoin_c = "scoin.c"
 satcoin_lines = []
 directory_name = "TEST_CNF_FILES"
 generate_cnf_command = "cbmc scoin.c -DCBMC --dimacs --outfile {}"
 # Lines to replace (starting from 0-based index)
-start_line = 259  # Line 260 in the file
-end_line = 278  # Line 279 in the file
-verify_hash_line = 279
+start_line = 185  # Line 186 in the file
+end_line = 204  # Line 205 in the file
+verify_hash_line = 205
 
 def execute_command_and_save_result(command):
     try:

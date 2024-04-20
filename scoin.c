@@ -1,15 +1,5 @@
-/* SAT-based bitcoin mining proof of concept. Follow the instructions at:
-    http://jheusser.github.io/2013/12/30/satcoin-code.html
-*/
-
-// Target is actually stored in the header for each block, in the "bits" field, as a 3
-// byte value and a 1 byte shift value displacing the 3 bytes.
-
 #include <stdio.h>
 #include <stdlib.h>
-
-int bc = 0;
-unsigned int prevtarget = 0;
 
 // SHA STUFF START -----------------------------------------------------------------
 unsigned int sha_h[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
@@ -128,32 +118,12 @@ int verifyhash(unsigned int *block)
     // set the nonce to a non-deterministic value
     *u_nonce = nondet_uint();
 
-#ifdef SATCNF
     // make sure the valid nonce is in the range
-    unsigned nonce_start = 497822588 - SATCNF;
-    unsigned nonce_end = 497822588 + SATCNF;
-    __CPROVER_assume(*u_nonce > nonce_start && *u_nonce < nonce_end); // used nonce should stay in the given range
-#else
-#ifdef UNSATCNF
-    // make sure the valid nonce is not in the range
-    unsigned nonce_start = 497822588;
-    unsigned nonce_end = nonce_start + UNSATCNF + UNSATCNF;
-    __CPROVER_assume(*u_nonce > nonce_start && *u_nonce < nonce_end); // used nonce should stay in the given range
-#else
-
-    /* =============================== GENESIS BLOCK ============================================= */
-    //__CPROVER_assume(*u_nonce > 0 && *u_nonce < 10);
-    //    __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
-    __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
-                                                                    /* =============================== GENESIS BLOCK ============================================= */
-                                                                    /* =============================== BLOCK 218430 ============================================== */
-                                                                    //__CPROVER_assume(*u_nonce > 4043570728 && *u_nonce < 4043570731);
-                                                                    /* =============================== BLOCK 218430 ============================================== */
-
-#endif // else UNSATCNF
-#endif // else SATCNF
+    // unsigned nonce_start = 497822588 - SATCNF;
+    // unsigned nonce_end = 497822588 + SATCNF;
+    // __CPROVER_assume(*u_nonce > nonce_start && *u_nonce < nonce_end); // used nonce should stay in the given range
+    
+    __CPROVER_assume(*u_nonce > 674152140 && *u_nonce < 674153140); // 1k nonces only
 #endif
 
     // The last 4 int's go together with some padding to make the second and final chunk.
@@ -180,63 +150,22 @@ int verifyhash(unsigned int *block)
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
 #ifdef CBMC
-    /* =============================== GENESIS BLOCK ============================================= */
-    // CBMCs view on state: 0a8ce26f72b3f1b646a2a6c14ff763ae65831e939c085ae1 0019d668 00 00 00 00
-    // this is before byteswap.
-    //
-    // encode structure of hash below target with leading zeros
-    //
-    __CPROVER_assume(
-        (unsigned char)(state[7] & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
-                                                           //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
-
+__CPROVER_assume(
+    (unsigned char)(state[7] & 0xff) == 0x00 &&
+    (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+    (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+    (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+    (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+    (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+    (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+    (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
+    (unsigned char)((state[5] >> 0) & 0xff) == 0x00);
     int flag = 0;
-    // if((unsigned char)((state[6]) & 0xff) != 0x00) {
-    if ((unsigned char)((state[7] >> 24) & 0xff) != 0x00)
+    if ((unsigned char)((state[5] >> 8) & 0xff) != 0x00)
     {
         flag = 1;
     }
-    // counterexample to this will contain an additional leading 0 in the hash which makes it below target
     assert(flag == 1);
-    /* =============================== GENESIS BLOCK ============================================= */
-    /* =============================== BLOCK 218430 ============================================== */
-    // 72d4ef030000b7fba3287cb2be97273002a5b3ffd3c19f3d3e-00 00 00-00 00 00 00
-    /*__CPROVER_assume(
-       (unsigned char)(state[7] & 0xff) == 0x00 &&
-       (unsigned char)((state[7]>>8) & 0xff)  == 0x00 &&
-       (unsigned char)((state[7]>>16) & 0xff) == 0x00 &&
-       (unsigned char)((state[7]>>24) & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>8) & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>16) & 0xff) == 0x00);
-     //  (unsigned char)((state[6]>>24) & 0xff) == 0x00);
-
-    int flag = 0;
-    if((unsigned char)((state[6]>>24) & 0xff) > 0x5a) {
-       flag = 1;
-    }
-    assert(flag == 1);*/
-    /* =============================== BLOCK 218430 ============================================== */
-    /* =============================== BLOCK X      ============================================== */
-    /* Target here is hex(0x0b1eff * 2**(8*(0x17 - 3))) == 386604799 -> 0x170b1eff */
-    /*__CPROVER_assume(
-       (unsigned char)(state[7] & 0xff) == 0x00 &&
-       (unsigned char)((state[7]>>8) & 0xff)  == 0x00 &&
-       (unsigned char)((state[7]>>16) & 0xff) == 0x00 &&
-       (unsigned char)((state[7]>>24) & 0xff) == 0x00 &&
-       (unsigned char)(state[6] & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>8) & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>16) & 0xff) == 0x00 &&
-       (unsigned char)((state[6]>>24) & 0xff) == 0x00 &&
-       (unsigned char)(state[5] & 0xff) == 0x00);
-
-    int flag = 0;
-    if((unsigned char)((state[5]>>8) & 0xff) > 0x0b) {
-       flag = 1;
-    }
-    assert(flag == 1);*/
-    /* =============================== BLOCK X      ============================================== */
 #endif
 
 #ifndef CBMC
@@ -254,27 +183,24 @@ int verifyhash(unsigned int *block)
     return (0);
 }
 
-
-
-
-unsigned int block_780900[20] = {0x00a05521,
-    0x621058fe,
-    0xc4bf8557,
-    0x617b517f,
-    0x26559829,
-    0x891e533c,
-    0x95590100,
-    0x00000000,
-    0x00000000,
-    0x56ebb725,
-    0x35fc21f5,
-    0x59cf2dc4,
-    0x9470a3cb,
-    0xb7f4c3a7,
-    0x9572fd38,
-    0x24b2f6ca,
-    0xe50040fa,
-    0xda931164,
-    0x81760617,
-    0x22223333};
-int main(int argc, void *argv[]){verifyhash(&block_780900[0]); return 0;}
+unsigned int block_780002[20] = {0x00a0f02e,
+0x7f8eb136,
+0xcef331c8,
+0x812f4a12,
+0x2b2f9dec,
+0x2794d1f6,
+0xa5430100,
+0x00000000,
+0x00000000,
+0x104ae551,
+0x60ceca7b,
+0xb23ea04c,
+0x02097d07,
+0x81aff9a0,
+0x5938ad53,
+0xe4bb81ed,
+0x3a1d8ee8,
+0x1bc70964,
+0xa3890617,
+0x63b4a26f};
+int main(int argc, void *argv[]){verifyhash(&block_780002[0]); return 0;}
