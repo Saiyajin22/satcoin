@@ -1,9 +1,16 @@
 import subprocess
 import os
 
+blocks_file = "BLOCKS.txt"
+blocks_lines = []
+satcoin_c = "scoin.c"
+satcoin_lines = []
 directory_name = "TEST_CNF_FILES"
-number_of_cnfs = 2
-generate_cnf_command = "cbmc satcoin.c -DCBMC --dimacs --outfile {}"
+generate_cnf_command = "cbmc scoin.c -DCBMC --dimacs --outfile {}"
+# Lines to replace (starting from 0-based index)
+start_line = 259  # Line 260 in the file
+end_line = 278  # Line 279 in the file
+verify_hash_line = 279
 
 def execute_command_and_save_result(command):
     try:
@@ -40,6 +47,27 @@ if not os.path.exists(directory_name):
 else:
     print(f"Directory '{directory_name}' already exists.")
 
-for i in range(number_of_cnfs):
-    execute_command(generate_cnf_command.format(directory_name + "/test" + str(i) + ".cnf"))
+# Read the blocks and store them
+with open(blocks_file, "r") as file:
+    blocks_lines = file.readlines()
+
+# Read satcoin.c
+with open(satcoin_c, "r") as file:
+    satcoin_lines = file.readlines()
+
+for i in range(len(blocks_lines)//20):
+    if(len(blocks_lines) < i*20+1): break
     # Change input block in satcoin.c
+    satcoin_lines[start_line:end_line+1] = blocks_lines[i*20:(i+1)*20]
+    # Change verifyHash in satcoin.c
+    block_name = blocks_lines[i*20].split(" ")[2]
+    block_name = block_name.split("[")[0]
+    satcoin_lines[verify_hash_line] = "int main(int argc, void *argv[]){verifyhash(&" + block_name + "[0]); return 0;}"
+    # Write the new c file back to satcoin.c
+    with open(satcoin_c, "w") as file:
+        file.writelines(satcoin_lines)
+    
+    # Execute cnf generation
+    execute_command(generate_cnf_command.format(directory_name + "/" + block_name + ".cnf"))
+
+print("CNF files generation ended")

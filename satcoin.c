@@ -308,8 +308,7 @@ unsigned int genesis_block[20] = {
     0xffff001d,
     0x1dac2b7c};
 
-unsigned int input_block[20] = {
-    16777216,
+unsigned int input_block[20] = {16777216,
     0,
     0,
     0,
