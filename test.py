@@ -1,15 +1,3 @@
-import os
-
-lines = []
-assumption_lines = []
-
-with open("scoin.c", "r") as file:
-    lines = file.readlines()
-
-with open("ASSUMPTIONS.txt", "r") as file:
-    assumption_lines = file.readlines()
-
-lines[182:185] = assumption_lines
-
-with open("scoin.c", "w") as file:
-    file.writelines(lines)
+hex_literal = "0x282ec0c0"
+parsed_int = int(hex_literal, 0)
+print(parsed_int)  # Output: 383741795

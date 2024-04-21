@@ -143,8 +143,8 @@ int verifyhash(unsigned int *block)
 
     /* =============================== GENESIS BLOCK ============================================= */
     //__CPROVER_assume(*u_nonce > 0 && *u_nonce < 10);
-    //    __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
-    __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
+       __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
+    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
                                                                     //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
                                                                     //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
                                                                     /* =============================== GENESIS BLOCK ============================================= */
@@ -187,19 +187,19 @@ int verifyhash(unsigned int *block)
     // encode structure of hash below target with leading zeros
     //
     __CPROVER_assume(
-        (unsigned char)(state[7] & 0xff) == 0x00 &&
+        (unsigned char)((state[7] >> 0) & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
                                                            //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
 
     int flag = 0;
     // if((unsigned char)((state[6]) & 0xff) != 0x00) {
-    if ((unsigned char)((state[7] >> 24) & 0xff) != 0x00)
+    if ((unsigned char)((state[7] >> 24) & 0xff) == 0x00 && (unsigned char)(((state[6] >> 0) & 0xff) >> 4 & 0xf) == 0x0)
     {
         flag = 1;
     }
     // counterexample to this will contain an additional leading 0 in the hash which makes it below target
-    assert(flag == 1);
+    assert(flag == 0);
     /* =============================== GENESIS BLOCK ============================================= */
     /* =============================== BLOCK 218430 ============================================== */
     // 72d4ef030000b7fba3287cb2be97273002a5b3ffd3c19f3d3e-00 00 00-00 00 00 00

@@ -123,7 +123,7 @@ int verifyhash(unsigned int *block)
     // unsigned nonce_end = 497822588 + SATCNF;
     // __CPROVER_assume(*u_nonce > nonce_start && *u_nonce < nonce_end); // used nonce should stay in the given range
     
-    __CPROVER_assume(*u_nonce > 674152140 && *u_nonce < 674153140); // 1k nonces only
+__CPROVER_assume(*u_nonce > 1094385912 && *u_nonce < 1094386912);
 #endif
 
     // The last 4 int's go together with some padding to make the second and final chunk.
@@ -151,21 +151,52 @@ int verifyhash(unsigned int *block)
 
 #ifdef CBMC
 __CPROVER_assume(
-    (unsigned char)(state[7] & 0xff) == 0x00 &&
-    (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-    (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-    (unsigned char)((state[5] >> 0) & 0xff) == 0x00);
-    int flag = 0;
-    if ((unsigned char)((state[5] >> 8) & 0xff) != 0x00)
-    {
-        flag = 1;
-    }
-    assert(flag == 1);
+(unsigned char)((state[7] >> 0) & 0xff) == 0x00 &&
+(unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
+(unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
+(unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
+(unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
+(unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
+(unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
+(unsigned char)((state[6] >> 24) & 0xff) == 0x00);
+int flag = 0;
+if ((unsigned char)((state[5] >> 0) & 0xff) != 0x00)
+{
+   flag = 1;
+}
+assert(flag == 1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+    
 #endif
 
 #ifndef CBMC
