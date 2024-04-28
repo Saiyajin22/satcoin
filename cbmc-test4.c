@@ -34,18 +34,23 @@ int main()
 {
     unsigned int x = 0;
     unsigned int state[8];
+    unsigned int changeable_var = 0;
     sha_initstate((unsigned int *)&state);
 
     #ifdef CBMC
         x = nondet_uint();
-        __CPROVER_assume(x > 0 && x <= 2000);
+        __CPROVER_assume(x > 0 && x <= 1993);
     #endif
 
     // printf("x: %d\n", x);
     state[7] = x;
     printf("state[7]: %d\n", state[7]);
 
-    unsigned long long result = factorial(200000);
+    // for(int i = 0; i < 30000; i++) {
+    unsigned long long result = factorial(20000);
+    // }
+    
+    changeable_var += 5;
 
 #ifdef CBMC
         // __CPROVER_assume(
@@ -61,6 +66,7 @@ int main()
     //     assert(0);
     // }
 
+    printf("end");
     assert(0);
     return 0;
 }
