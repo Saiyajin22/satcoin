@@ -48,11 +48,12 @@ int main()
 {
     unsigned int x = 0;
     unsigned int state[8];
+    unsigned int changeable_var = 0;
     sha_initstate((unsigned int *)&state);
 
     #ifdef CBMC
         x = nondet_uint();
-        __CPROVER_assume(x > 0 && x <= 2000);
+        __CPROVER_assume(x > 0 && x <= 1993);
     #endif
 
     // printf("x: %d\n", x);
@@ -75,6 +76,7 @@ int main()
     //     assert(0);
     // }
 
+    printf("end");
     assert(0);
     return 0;
 }
