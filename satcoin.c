@@ -287,9 +287,9 @@ void verifyhash(unsigned int *block)
     /* =============================== CORRECT NONCE: 674152640 ================================== */ // 674152640
     // __CPROVER_assume(*u_nonce > 674152639 && *u_nonce < 674152641); // 1 nonces only
     // __CPROVER_assume(*u_nonce > 674152639 && *u_nonce < 674152642); // 2 nonces
-    // __CPROVER_assume(*u_nonce > 674152635 && *u_nonce < 674152645); // 10 nonces
+    __CPROVER_assume(*u_nonce > 674152639 && *u_nonce < 674152644); // 10 nonces
     // __CPROVER_assume(*u_nonce > 674152600 && *u_nonce < 674152700); // 100 nonces
-    __CPROVER_assume(*u_nonce > 674152500 && *u_nonce < 674153500); // 1k nonces
+    // __CPROVER_assume(*u_nonce > 674152500 && *u_nonce < 674153500); // 1k nonces
     // __CPROVER_assume(*u_nonce > 674150000 && *u_nonce < 674160000); // 10k nonces
     // __CPROVER_assume(*u_nonce > 674100000 && *u_nonce < 674200000); // 100k nonces
 

@@ -30,6 +30,20 @@ void sha_initstate(unsigned int *state)
     }
 }
 
+unsigned long long fib(int n, unsigned long long memo[])
+{
+    if (n <= 1)
+    {
+        return n;
+    }
+    if (memo[n] != 0)
+    {
+        return memo[n];
+    }
+    memo[n] = fib(n - 1, memo) + fib(n - 2, memo);
+    return memo[n];
+}
+
 int main()
 {
     unsigned int x = 0;
@@ -45,7 +59,7 @@ int main()
     state[7] = x;
     printf("state[7]: %d\n", state[7]);
 
-    unsigned long long result = factorial(200000);
+    
 
 #ifdef CBMC
         // __CPROVER_assume(
