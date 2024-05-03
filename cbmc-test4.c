@@ -6,6 +6,20 @@ int plusTen(int num) {
 }
 
 
+unsigned long long fib(int n, unsigned long long memo[])
+{
+    if (n <= 1)
+    {
+        return n;
+    }
+    if (memo[n] != 0)
+    {
+        return memo[n];
+    }
+    memo[n] = fib(n - 1, memo) + fib(n - 2, memo);
+    return memo[n];
+}
+
 int main()
 {
     unsigned int x = 0;
