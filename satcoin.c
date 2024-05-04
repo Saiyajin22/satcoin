@@ -67,7 +67,7 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
     h = *(state + 7);
 
     // Main loop:
-    for (n = 0; n < 64; n++)
+    for (n = 0; n < 20; n++)
     {
         S0 = (a >> 2 | a << (32 - 2)) ^ (a >> 13 | a << (32 - 13)) ^ (a >> 22 | a << (32 - 22));
         maj = (a & b) ^ (a & c) ^ (b & c);
@@ -146,7 +146,7 @@ int verifyhash(unsigned int *block)
     //    __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
     __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
                                                                     //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
-                                                                    //__CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
+                                                                    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
                                                                     /* =============================== GENESIS BLOCK ============================================= */
                                                                     /* =============================== BLOCK 218430 ============================================== */
                                                                     //__CPROVER_assume(*u_nonce > 4043570728 && *u_nonce < 4043570731);
@@ -187,14 +187,14 @@ int verifyhash(unsigned int *block)
     // encode structure of hash below target with leading zeros
     //
     __CPROVER_assume(
-        (unsigned char)((state[7] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00); //&&
+        (unsigned char)((state[7] >> 0) & 0xff) == 0xf7 &&
+        (unsigned char)((state[7] >> 8) & 0xff) == 0xa5 &&
+        (unsigned char)((state[7] >> 16) & 0xff) == 0xd1); //&&
                                                            //(unsigned char)((state[7]>>24) & 0xff) == 0x00);
 
     int flag = 0;
     // if((unsigned char)((state[6]) & 0xff) != 0x00) {
-    if ((unsigned char)((state[7] >> 24) & 0xff) == 0x00)
+    if ((unsigned char)((state[7] >> 24) & 0xff) == 0x74)
     {
         flag = 1;
     }
