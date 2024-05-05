@@ -5,67 +5,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-/*Global variables and constants*/
 #define MAX_NONCE 4294967295
-
-// TODO - Check what are these values uses for.
-// int bc = 0;
-// unsigned int prevtarget = 0;
 
 const unsigned int pad0[12] = {
     0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000280};
 
 const unsigned int pad1[8] = {0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000100};
-
-/*Outdated padding for the double hashing process.
-This is only useful if we consider that the double
-hashing occurs by the second SHA256 call will process
-the first hash as a string value, rather than a hexadecimal value.
-By string I mean inputs like this: 152fb5611b8273bd2c292adea87fdea9d4ee86fbc49db9291a3099ed349a2a62
-By hex, we can just copy the values from SHA256's state, so: 0x152fb561, then 0x1b8273bd ....
-*/
-// const unsigned int double_hash_pad[16] = {
-//     0x80000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
-//     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000200};
-
-/*Helper functions*/
-void printHashNormalWay(unsigned int *state)
-{
-    printf("NORMAL WAY HASH: ");
-    for (int n = 0; n < 8; n++)
-    {
-        if (n == 7)
-        {
-            printf("%08x", state[n]);
-        }
-        else
-        {
-            printf("%08x-", state[n]);
-        }
-    }
-    printf("\n");
-}
-
-void printHashBitcoinWaysBeforeByteSwap(unsigned int *state)
-{
-    printf("BITCOIN WAY HASH BEFORE BYTE SWAP: ");
-    for (int i = 0; i < 8; i++)
-    {
-        printf("%02x-", state[i] & 0xff);
-        printf("%02x-", (state[i] >> 8) & 0xff);
-        printf("%02x-", (state[i] >> 16) & 0xff);
-        if (i == 7)
-        {
-            printf("%02x", (state[i] >> 24) & 0xff);
-        }
-        else
-        {
-            printf("%02x-", (state[i] >> 24) & 0xff);
-        }
-    }
-    printf("\n");
-}
 
 void printHashBitcoinWay(unsigned int *state)
 {
@@ -85,40 +31,6 @@ void printHashBitcoinWay(unsigned int *state)
         }
     }
     printf("\n");
-
-    // unsigned char c1 = (unsigned char)((state[5] >> 0) & 0xff);
-    // unsigned char c2 = (unsigned char)((state[5] >> 8) & 0xff);
-    // unsigned char c3 = (unsigned char)((state[5] >> 16) & 0xff);
-    // unsigned char c4 = (unsigned char)((state[5] >> 24) & 0xff);
-    // printf("c1: %d \n", c1);
-    // printf("c2: %d \n", c2);
-    // printf("c3: %d \n", c3);
-    // printf("c4: %d \n", c4);
-    // printf("c1hex: %02x \n", c1);
-    // printf("c2hex: %02x \n", c2);
-    // unsigned char c21 = c2 >> 0 & 0xf;
-    // unsigned char c22 = c2 >> 4 & 0xf; // This way we can assume 1 hex digit at a time, instead of 2.
-    // printf("c21: %02x \n", c21);
-    // printf("c22: %02x \n", c22);
-    // unsigned char f0 = 240;
-    // unsigned char f = f0 >> 4 & 0xf;
-    // unsigned char chex = ((unsigned char)((state[5] >> 8) & 0xff)) >> 4 & 0xf;
-    // printf("chex: %02x \n", chex);
-    // printf("f: %02x \n", f);
-    // printf("comp: %d \n", c2 == 0);
-    // printf("c3hex: %02x \n", c3);
-    // printf("c4hex: %02x \n", c4);
-    // printf("zeroHex: %d \n", (((unsigned char)((state[5] >> 0) & 0xff)) >> 4 & 0xf) == 0x0);
-}
-
-char *hashToString(unsigned int *state)
-{
-    char *result = malloc(65);
-    sprintf(result, "%08x%08x%08x%08x%08x%08x%08x%08x",
-            state[0], state[1], state[2], state[3],
-            state[4], state[5], state[6], state[7]);
-    printf("Hash as string: %s\n", result);
-    return result;
 }
 
 /*SHA256 constant values for hashing*/
@@ -228,97 +140,6 @@ long verifyhash(unsigned int *block)
     // Process it.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
-#ifdef CBMC
-    // Set the nonce to a non-deterministic value by CBMC's nondet_uint() call
-    // We set it after the first chunk procession, because it will affect only the second chunk
-    *u_nonce = nondet_uint();
-
-#ifdef SATCNF
-    // make sure the valid nonce is in the range
-    unsigned nonce_start = 497822588 - SATCNF;
-    unsigned nonce_end = 497822588 + SATCNF;
-    __CPROVER_assume(*u_nonce > nonce_start && *u_nonce < nonce_end); // used nonce should stay in the given range
-#else
-#ifdef UNSATCNF
-    // make sure the valid nonce is not in the range
-    unsigned nonce_start = 497822588;
-    unsigned nonce_end = nonce_start + UNSATCNF + UNSATCNF;
-    __CPROVER_assume(*u_nonce > nonce_start && *u_nonce < nonce_end); // used nonce should stay in the given range
-#else
-
-    /* =============================== GENESIS BLOCK ============================================= */
-    /* =============================== CORRECT NONCE: 497822588 ================================== */
-    // __CPROVER_assume(*u_nonce > 497822587 && *u_nonce < 497822589); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 497822580 && *u_nonce < 497822590); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 497822580 && *u_nonce < 497822680); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497823585); // 1k
-    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497832585); // 10k
-    // __CPROVER_assume(*u_nonce > 497822585 && *u_nonce < 497922585); // 100k
-
-    /* =============================== BLOCK 218430 ============================================== */
-    /* =============================== CORRECT NONCE: 4043570730 ================================== */
-    // __CPROVER_assume(*u_nonce > 4043570729 && *u_nonce < 4043570731); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 4043570725 && *u_nonce < 4043570735); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 4043570650 && *u_nonce < 4043570750); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 4043570000 && *u_nonce < 4043571000); // 1k
-    // __CPROVER_assume(*u_nonce > 4043570000 && *u_nonce < 4043580000); // 10k
-    // __CPROVER_assume(*u_nonce > 4043500000 && *u_nonce < 4043600000); // 100k
-
-    /* =============================== BLOCK 467000 ============================================== */
-    /* =============================== CORRECT NONCE: 4286565448 ================================== */
-    // __CPROVER_assume(*u_nonce > 4286565447 && *u_nonce < 4286565449); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 4286565440 && *u_nonce < 4286565450); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 4286565400 && *u_nonce < 4286565500); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 4286565000 && *u_nonce < 4286566000); // 1k
-
-    /* =============================== BLOCK 654000 ============================================== */
-    /* =============================== CORRECT NONCE: 2806799514 ================================== */
-    // __CPROVER_assume(*u_nonce > 2806799513 && *u_nonce < 2806799515); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 2806799510 && *u_nonce < 2806799520); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 2806799500 && *u_nonce < 2806799600); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 2806799000 && *u_nonce < 2806800000); // 1k
-
-    /* =============================== BLOCK 780000 ============================================= */
-    /* =============================== CORRECT NONCE: 674152640 ================================== */ // 674152640
-    // __CPROVER_assume(*u_nonce > 674152639 && *u_nonce < 674152641); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 674152635 && *u_nonce < 674152645); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 674152630 && *u_nonce < 674152730); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 674152500 && *u_nonce < 674153500); // 1k nonces
-    // __CPROVER_assume(*u_nonce > 674150000 && *u_nonce < 674160000); // 10k nonces
-    // __CPROVER_assume(*u_nonce > 674100000 && *u_nonce < 674200000); // 100k nonces
-
-    /* =============================== BLOCK 780900 ============================================= */
-    /* =============================== CORRECT NONCE: 1261881605 ================================== */
-    // __CPROVER_assume(*u_nonce > 1261881604 && *u_nonce < 1261881606); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 1261881600 && *u_nonce < 1261881610); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 1261881600 && *u_nonce < 1261881700); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 1261881000 && *u_nonce < 1261882000); // 1k nonces
-
-    /* =============================== BLOCK 798000 ============================================= */
-    /* =============================== CORRECT NONCE: 1621631782 ================================== */
-    // __CPROVER_assume(*u_nonce > 1621631781 && *u_nonce < 1621631783); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 1621631780 && *u_nonce < 1621631790); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 1621631700 && *u_nonce < 1621631800); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 1621631000 && *u_nonce < 1621632000); // 1k nonces
-
-    /* =============================== BLOCK 834202 ============================================= */
-    /* =============================== CORRECT NONCE: 28578347 ================================== */
-    // __CPROVER_assume(*u_nonce > 28578346 && *u_nonce < 28578348); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 28578340 && *u_nonce < 28578350); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 28578300 && *u_nonce < 28578400); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 28578000 && *u_nonce < 28579000); // 1k nonces
-
-    /* =============================== BLOCK 756951 ============================================= */
-    /* =============================== CORRECT NONCE: 2349802433 ================================== */
-    // __CPROVER_assume(*u_nonce > 2349802432 && *u_nonce < 2349802434); // 1 nonces only
-    // __CPROVER_assume(*u_nonce > 2349802430 && *u_nonce < 2349802440); // 10 nonces
-    // __CPROVER_assume(*u_nonce > 2349802400 && *u_nonce < 2349802500); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 2349802000 && *u_nonce < 2349803000); // 1k nonces
-
-#endif // else UNSATCNF
-#endif // else SATCNF
-#endif // end CBMC
-
     // Here we process the ramining 4 values of the input block.
     // We use the correct padding for it.
     // This is the 2nd and final chunk, which when processed, will give us the first SHA256 hash.
@@ -348,193 +169,17 @@ long verifyhash(unsigned int *block)
     // After this, we will have the correct SHA256 Hash for our input_block, which is Double hashed.
     sha_processchunk((unsigned int *)&state, (unsigned int *)&chunk);
 
-/* ==================== ASSERTION and ASSUMPTIONS ================================= */
-/* This is the part Where we assume the number of leading zeros, and make an assertion, which will fail, so CBMC detects the correct nonce */
-#ifdef CBMC
-    /* =============================== GENESIS BLOCK ============================================= */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00);
-
-    /* =============================== BLOCK 218430 ============================================== */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00);
-
-    /* =============================== BLOCK 467000 ============================================== */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00);
-    // (((unsigned char)((state[5] >> 0) & 0xff)) >> 4 & 0xf) == 0x0);
-
-    /* =============================== BLOCK 654000 ============================================== */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-    //     (((unsigned char)((state[5] >> 8) & 0xff)) >> 4 & 0xf) == 0x0);
-
-    /* =============================== BLOCK 780000 ============================================= */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
-
-    /* =============================== BLOCK 780900 ============================================= */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
-
-    /* =============================== BLOCK 798000 ============================================= */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
-
-    /* =============================== BLOCK 834202 ============================================= */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00);
-
-    /* =============================== BLOCK 756951 ============================================= */
-    // __CPROVER_assume(
-    //     (unsigned char)(state[7] & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 8) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 16) & 0xff) == 0x00 &&
-    //     (unsigned char)((state[5] >> 24) & 0xff) == 0x00);
-
-    /* ============================= ASSERTION - Modify as needed ==================================================== */
-    int flag = 0;
-    if ((unsigned char)(state[7] & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 8) & 0xff) == 0x00)
-    {
-        flag = 1;
-    }
-    assert(flag == 0);
-#endif
-
-#ifndef CBMC
     if ((unsigned char)(state[7] & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
         (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
         (unsigned char)((state[6] >> 0) & 0xff) == 0x00)
     {
-        // Printing hash in normal, convenient way.
-        printHashNormalWay(state);
-
-        // Printing in before byte swap - bitcoin way.
-        printHashBitcoinWaysBeforeByteSwap(state);
-
-        // Printing in reverse, because the hash is a big retarded big endian number in bitcoin.
         printHashBitcoinWay(state);
-
         return *u_nonce;
     }
-
     return -1;
-
-#endif
-} // end verifyHash
-
-/* Heusser's function - TODO Check what it does*/
-// void processblocks(char *filename)
-// {
-//     FILE *f;
-//     char buf[256];
-//     unsigned int *bp, *bsize, *block;
-//     unsigned int n, t;
-
-//     bp = (unsigned int *)&buf;
-//     bsize = bp + 1;
-//     block = bp + 2;
-
-//     f = fopen(filename, "rb");
-
-//     while (fread(buf, 1, 88, f) == 88)
-//     {
-//         // Swap endianess.. I think this is already done in the RPC getwork(), but that must be triple checked.
-//         for (n = 0; n < 20; n++)
-//         {
-//             t = *(block + n);
-//             t = (t >> 24) | (t << 24) | ((t & 0x00ff0000) >> 8) | ((t & 0x0000ff00) << 8);
-//             *(block + n) = t;
-//         }
-
-//         verifyhash(block);
-
-//         bc++;
-//         fseek(f, *bsize - 80, SEEK_CUR);
-//     }
-
-//     fclose(f);
-// }
+} 
 
 /* ============================= INPUT BLOCKS ============================================= */
 unsigned int genesis_block[20] = {
@@ -749,10 +394,10 @@ int main(int argc, void *argv[])
 {
     clock_t start, end, elapsed;
     start = clock();
-    for (long i = 495822588; i <= MAX_NONCE; i++)
+    for (long i = 673152640; i <= MAX_NONCE; i++)
     {
-        genesis_block[19] = i;
-        unsigned int validNonce = verifyhash(&genesis_block[0]);
+        block_780000[19] = i;
+        unsigned int validNonce = verifyhash(&block_780000[0]);
         if (validNonce != -1)
         {
             break;
