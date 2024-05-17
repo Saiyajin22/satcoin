@@ -67,7 +67,7 @@ void sha_processchunk(unsigned int *state, unsigned int *chunk)
     h = *(state + 7);
 
     // Main loop:
-    for (n = 0; n < 20; n++)
+    for (n = 0; n < 16; n++)
     {
         S0 = (a >> 2 | a << (32 - 2)) ^ (a >> 13 | a << (32 - 13)) ^ (a >> 22 | a << (32 - 22));
         maj = (a & b) ^ (a & c) ^ (b & c);
