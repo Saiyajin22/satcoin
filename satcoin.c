@@ -287,9 +287,9 @@ void verifyhash(unsigned int *block)
     /* =============================== CORRECT NONCE: 674152640 ================================== */ // 674152640
     // __CPROVER_assume(*u_nonce > 674152639 && *u_nonce < 674152641); // 1 nonces only
     // __CPROVER_assume(*u_nonce > 674152639 && *u_nonce < 674152642); // 2 nonces
-    __CPROVER_assume(*u_nonce > 674152639 && *u_nonce < 674152644); // 10 nonces
+    // __CPROVER_assume(*u_nonce > 674152635 && *u_nonce < 674152645); // 10 nonces
     // __CPROVER_assume(*u_nonce > 674152600 && *u_nonce < 674152700); // 100 nonces
-    // __CPROVER_assume(*u_nonce > 674152500 && *u_nonce < 674153500); // 1k nonces
+    __CPROVER_assume(*u_nonce > 674152500 && *u_nonce < 674153500); // 1k nonces
     // __CPROVER_assume(*u_nonce > 674150000 && *u_nonce < 674160000); // 10k nonces
     // __CPROVER_assume(*u_nonce > 674100000 && *u_nonce < 674200000); // 100k nonces
 
@@ -466,21 +466,10 @@ void verifyhash(unsigned int *block)
     //     (unsigned char)((state[5] >> 24) & 0xff) == 0x00);
 
     /* ============================= ASSERTION - Modify as needed ==================================================== */
-    int flag = 0;
-    if ((unsigned char)(state[7] & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[7] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 0) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 8) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 16) & 0xff) == 0x00 &&
-        (unsigned char)((state[6] >> 24) & 0xff) == 0x00 &&
-        (unsigned char)((state[5] >> 0) & 0xff) == 0x00)
-        // (unsigned char)((state[5] >> 8) & 0xff) == 0x00)
+    if ((unsigned char)((state[6] >> 24) & 0xff) == 0x00)
     {
-        flag = 1;
+        assert(0);
     }
-    assert(flag == 0);
 #endif
 
 #ifndef CBMC
@@ -640,7 +629,7 @@ unsigned int block_780000[20] = {
     0x75069bd1,
     0xab40f03f,
     0x7cc40964,
-    0xa3890617, // modified, original is: 0xa3890617
+    0xa3890617,
     // 0x282ec0c0}; // correct nonce
     0x22223331}; // random nonce which will be overwritten
 
